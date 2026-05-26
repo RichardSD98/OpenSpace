@@ -1,0 +1,241 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import toast from 'react-hot-toast'
+
+const NEIGHBORHOODS = [
+  'Katutura', 'Khomasdal', 'Klein Windhoek', 'Olympia',
+  'Pioneers Park', 'Rocky Crest', 'Hochland Park', 'Eros',
+  'Ludwigsdorf', 'Academia', 'Otjomuise', 'Wanaheda',
+  'Dorado Park', 'Auasblick', 'Suiderhof',
+]
+
+const AMENITIES_OPTIONS = [
+  'WiFi', 'Water included', 'Electricity included', 'Parking',
+  'Security/Gate', 'Garden', 'Furnished', 'Pet-friendly',
+  'Laundry', 'DSTV', 'Air conditioning',
+]
+
+const INITIAL = {
+  title: '', description: '', unitType: 'apartment',
+  rent: '', deposit: '', neighborhood: '', address: '',
+  bedrooms: 1, bathrooms: 1,
+  availableFrom: '', contactName: '', contactPhone: '', contactEmail: '',
+  amenities: [], isAvailable: true,
+}
+
+export default function PostListing() {
+  const navigate = useNavigate()
+  const [form, setForm] = useState(INITIAL)
+  const [photos, setPhotos] = useState([])
+  const [previews, setPreviews] = useState([])
+  const [submitting, setSubmitting] = useState(false)
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handlePhotoChange = (e) => {
+    const files = Array.from(e.target.files)
+    if (photos.length + files.length > 6) { toast.error('Maximum 6 photos'); return }
+    setPhotos(p => [...p, ...files])
+    setPreviews(p => [...p, ...files.map(f => URL.createObjectURL(f))])
+  }
+
+  const removePhoto = (idx) => {
+    setPhotos(p => p.filter((_, i) => i !== idx))
+    setPreviews(p => p.filter((_, i) => i !== idx))
+  }
+
+  const toggleAmenity = (a) => set('amenities',
+    form.amenities.includes(a)
+      ? form.amenities.filter(x => x !== a)
+      : [...form.amenities, a]
+  )
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.neighborhood) { toast.error('Please select a neighbourhood'); return }
+    setSubmitting(true)
+    try {
+      let photoUrls = []
+      if (photos.length > 0) {
+        const fd = new FormData()
+        photos.forEach(f => fd.append('photos', f))
+        const { data } = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        photoUrls = data.urls
+      }
+      const payload = {
+        ...form,
+        rent: Number(form.rent),
+        deposit: Number(form.deposit) || 0,
+        bedrooms: Number(form.bedrooms),
+        bathrooms: Number(form.bathrooms),
+        photos: photoUrls,
+      }
+      const { data } = await api.post('/listings', payload)
+      toast.success('Listing posted!')
+      navigate(`/listings/${data._id}`)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to post listing')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="form-page" style={{ alignItems: 'flex-start', paddingTop: '3rem' }}>
+      <div className="form-wrap-wide">
+        <h1 className="form-heading">Post a listing</h1>
+        <p className="form-sub">Fill in the details to list your property on OpenSpace.</p>
+
+        <form onSubmit={handleSubmit}>
+          {/* Basic info */}
+          <div className="form-section">
+            <div className="form-section-title">Basic information</div>
+            <div className="form-field">
+              <label className="form-label">Listing title *</label>
+              <input required placeholder="e.g. Spacious 2-bed apartment in Olympia" value={form.title}
+                onChange={e => set('title', e.target.value)} className="form-input" />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Description</label>
+              <textarea rows={4} placeholder="Describe the property, what's included, rules…"
+                value={form.description} onChange={e => set('description', e.target.value)}
+                className="form-input" style={{ resize: 'vertical' }} />
+            </div>
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="form-label">Unit type *</label>
+                <select required value={form.unitType} onChange={e => set('unitType', e.target.value)} className="form-input">
+                  {[
+                    { value: 'apartment', label: 'Apartment' },
+                    { value: 'flat', label: 'Flat' },
+                    { value: 'single room', label: 'Single Room' },
+                    { value: 'studio', label: 'Studio' },
+                  ].map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label className="form-label">Available from *</label>
+                <input required type="date" value={form.availableFrom}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={e => set('availableFrom', e.target.value)} className="form-input" />
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="form-section">
+            <div className="form-section-title">Pricing</div>
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="form-label">Monthly rent (N$) *</label>
+                <input required type="number" min={0} placeholder="e.g. 5500" value={form.rent}
+                  onChange={e => set('rent', e.target.value)} className="form-input" />
+              </div>
+              <div className="form-field">
+                <label className="form-label">Deposit (N$)</label>
+                <input type="number" min={0} placeholder="e.g. 5500" value={form.deposit}
+                  onChange={e => set('deposit', e.target.value)} className="form-input" />
+              </div>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="form-section">
+            <div className="form-section-title">Location</div>
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="form-label">Neighbourhood *</label>
+                <select required value={form.neighborhood} onChange={e => set('neighborhood', e.target.value)} className="form-input">
+                  <option value="">Select neighbourhood</option>
+                  {NEIGHBORHOODS.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div className="form-field">
+                <label className="form-label">Street address</label>
+                <input placeholder="e.g. 12 Independence Ave" value={form.address}
+                  onChange={e => set('address', e.target.value)} className="form-input" />
+              </div>
+            </div>
+          </div>
+
+          {/* Property details */}
+          <div className="form-section">
+            <div className="form-section-title">Property details</div>
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="form-label">Bedrooms</label>
+                <input type="number" min={0} max={20} value={form.bedrooms}
+                  onChange={e => set('bedrooms', e.target.value)} className="form-input" />
+              </div>
+              <div className="form-field">
+                <label className="form-label">Bathrooms</label>
+                <input type="number" min={0} max={10} value={form.bathrooms}
+                  onChange={e => set('bathrooms', e.target.value)} className="form-input" />
+              </div>
+            </div>
+            <div className="form-field">
+              <label className="form-label">Amenities</label>
+              <div className="amenity-tags">
+                {AMENITIES_OPTIONS.map(a => (
+                  <button type="button" key={a}
+                    className={`amenity-tag${form.amenities.includes(a) ? ' on' : ''}`}
+                    onClick={() => toggleAmenity(a)}>{a}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Contact */}
+          <div className="form-section">
+            <div className="form-section-title">Contact information</div>
+            <div className="form-field">
+              <label className="form-label">Contact name *</label>
+              <input required placeholder="Your full name" value={form.contactName}
+                onChange={e => set('contactName', e.target.value)} className="form-input" />
+            </div>
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="form-label">Phone *</label>
+                <input required type="tel" placeholder="+264 81 000 0000" value={form.contactPhone}
+                  onChange={e => set('contactPhone', e.target.value)} className="form-input" />
+              </div>
+              <div className="form-field">
+                <label className="form-label">Email</label>
+                <input type="email" placeholder="you@example.com" value={form.contactEmail}
+                  onChange={e => set('contactEmail', e.target.value)} className="form-input" />
+              </div>
+            </div>
+          </div>
+
+          {/* Photos */}
+          <div className="form-section">
+            <div className="form-section-title">Photos</div>
+            <label className="photo-upload-zone">
+              <p className="photo-upload-hint" style={{ marginBottom: '0.25rem' }}>Click to upload photos</p>
+              <p className="photo-upload-hint" style={{ fontSize: '0.75rem' }}>JPEG, PNG — max 5MB each, up to 6 photos</p>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoChange} />
+            </label>
+            {previews.length > 0 && (
+              <div className="photo-grid">
+                {previews.map((src, i) => (
+                  <div key={i} className="photo-thumb">
+                    <img src={src} alt="" />
+                    <button type="button" className="photo-remove" onClick={() => removePhoto(i)}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button type="submit" disabled={submitting} className="btn-main"
+            style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem' }}>
+            {submitting ? 'Posting…' : 'Post listing'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
