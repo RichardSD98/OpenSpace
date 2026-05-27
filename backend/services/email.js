@@ -1,10 +1,9 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM = 'OpenSpace <onboarding@resend.dev>';
 
 async function sendWelcomeEmail({ name, email, verifyToken }) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
 
   await resend.emails.send({
