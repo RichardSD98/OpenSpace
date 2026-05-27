@@ -44,6 +44,18 @@ export default function PostListing() {
     }
   }, [user, navigate])
 
+  // Pre-fill contact fields from logged-in user's profile
+  useEffect(() => {
+    if (user) {
+      setForm(f => ({
+        ...f,
+        contactName: user.name || '',
+        contactPhone: user.phone || '',
+        contactEmail: user.email || '',
+      }))
+    }
+  }, [user])
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handlePhotoChange = (e) => {
@@ -216,6 +228,9 @@ export default function PostListing() {
           {/* Contact */}
           <div className="form-section">
             <div className="form-section-title">Contact information</div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--grey)', marginBottom: '1rem', marginTop: '-0.5rem' }}>
+              Pre-filled from your profile. You can edit if needed.
+            </p>
             <div className="form-field">
               <label className="form-label">Contact name *</label>
               <input required placeholder="Your full name" value={form.contactName}
