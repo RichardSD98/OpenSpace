@@ -32,16 +32,34 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <div className="form-field">
             <label className="form-label">Email address</label>
-            <input required type="email" placeholder="you@example.com" value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })} className="form-input" />
+            <input
+              required
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="form-input"
+            />
           </div>
+
           <div className="form-field">
             <label className="form-label">Password</label>
-            <input required type="password" placeholder="Your password" value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })} className="form-input" />
+            <input
+              required
+              type="password"
+              placeholder="Your password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="form-input"
+            />
           </div>
-          <button type="submit" disabled={loading} className="btn-main"
-            style={{ width: '100%', marginTop: '0.75rem', padding: '0.85rem 1.6rem' }}>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-main"
+            style={{ width: '100%', marginTop: '0.75rem', padding: '0.85rem 1.6rem' }}
+          >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>

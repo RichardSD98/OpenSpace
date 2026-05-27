@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle, AlertCircle } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../api/supabase'
 
 export default function VerifyEmail() {
   const [status, setStatus] = useState('verifying')
 
   useEffect(() => {
+    // Supabase redirects here after clicking the email link.
+    // It automatically handles the token via the URL hash — getSession() picks it up.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'success' : 'error')
     })
