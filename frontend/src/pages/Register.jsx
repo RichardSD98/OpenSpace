@@ -16,8 +16,10 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     try {
-      await register(form.email, form.password, {
+      await register({
         name: form.name,
+        email: form.email,
+        password: form.password,
         phone: form.phone,
         role: form.role,
       })
