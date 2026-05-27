@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
@@ -18,15 +19,22 @@ const STATUS_COLOR = {
 }
 
 export default function MyRequests() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (user && user.role !== 'renter') {
+      toast.error('This page is for renters only')
+      navigate('/')
+      return
+    }
     api.get('/view-requests/my')
       .then(r => setRequests(r.data))
       .catch(() => toast.error('Could not load your requests'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user, navigate])
 
   return (
     <main style={{ maxWidth: '860px', margin: '0 auto', padding: '2.5rem 1.25rem' }}>
@@ -34,14 +42,14 @@ export default function MyRequests() {
         My viewing requests
       </h1>
       <p style={{ color: 'var(--grey)', fontSize: '0.85rem', marginBottom: '2rem' }}>
-        Track the spaces you've expressed interest in.
+        Track the spaces you&apos;ve expressed interest in.
       </p>
 
       {loading && <p style={{ color: 'var(--grey)' }}>Loading…</p>}
 
       {!loading && requests.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--grey)' }}>
-          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>You haven't sent any viewing requests yet.</p>
+          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>You haven&apos;t sent any viewing requests yet.</p>
           <Link to="/" className="btn-main">Browse listings</Link>
         </div>
       )}
@@ -51,9 +59,7 @@ export default function MyRequests() {
           {requests.map(req => {
             const listing = req.listing
             if (!listing) return null
-            const photo = listing.photos?.[0]
-              ? listing.photos[0].startsWith('http') ? listing.photos[0] : `/uploads/${listing.photos[0]}`
-              : PLACEHOLDER
+            const photo = listing.photos?.[0] || PLACEHOLDER
 
             return (
               <div key={req._id} style={{
@@ -78,11 +84,11 @@ export default function MyRequests() {
                   </p>
                   {req.message && (
                     <p style={{ fontSize: '0.75rem', color: 'var(--grey)', marginTop: '0.35rem', fontStyle: 'italic' }}>
-                      "{req.message}"
+                      &ldquo;{req.message}&rdquo;
                     </p>
                   )}
                   <p style={{ fontSize: '0.7rem', color: 'var(--grey)', marginTop: '0.3rem' }}>
-                    Sent {new Date(req.createdAt).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    Sent {new Date(req.created_at).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
                 <div style={{ padding: '0 1.25rem', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.6rem' }}>
