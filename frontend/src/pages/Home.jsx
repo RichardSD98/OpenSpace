@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
+import { SkeletonCard } from '../components/Skeleton'
 import { useReveal } from '../context/useReveal'
 
 const UNIT_TYPES = [
@@ -220,9 +221,7 @@ export default function Home() {
           )}
           {loading ? (
             <div className="listings">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="listing" style={{ minHeight: 260, opacity: 0.25 }} />
-              ))}
+              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           ) : listings.length === 0 ? (
             <div style={{ padding: '4rem 0', textAlign: 'center', color: 'var(--grey)', fontSize: '0.9rem', fontWeight: 300 }}>

@@ -4,6 +4,7 @@ import { Phone, Mail, MessageCircle } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { SkeletonDetail } from '../components/Skeleton'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
 
@@ -134,8 +135,8 @@ export default function ListingDetail() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <span style={{ color: 'var(--grey)', fontSize: '0.85rem', fontWeight: 300 }}>Loading…</span>
+      <div className="detail-page">
+        <SkeletonDetail />
       </div>
     )
   }
