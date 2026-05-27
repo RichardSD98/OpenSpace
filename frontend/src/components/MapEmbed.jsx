@@ -38,4 +38,3 @@ export default function MapEmbed({ neighborhood, address }) {
     </div>
   )
 }
-

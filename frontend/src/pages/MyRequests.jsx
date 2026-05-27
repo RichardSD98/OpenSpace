@@ -42,14 +42,14 @@ export default function MyRequests() {
         My viewing requests
       </h1>
       <p style={{ color: 'var(--grey)', fontSize: '0.85rem', marginBottom: '2rem' }}>
-        Track the spaces you've expressed interest in.
+        Track the spaces you&apos;ve expressed interest in.
       </p>
 
       {loading && <p style={{ color: 'var(--grey)' }}>Loading…</p>}
 
       {!loading && requests.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--grey)' }}>
-          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>You haven't sent any viewing requests yet.</p>
+          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>You haven&apos;t sent any viewing requests yet.</p>
           <Link to="/" className="btn-main">Browse listings</Link>
         </div>
       )}
@@ -84,11 +84,11 @@ export default function MyRequests() {
                   </p>
                   {req.message && (
                     <p style={{ fontSize: '0.75rem', color: 'var(--grey)', marginTop: '0.35rem', fontStyle: 'italic' }}>
-                      "{req.message}"
+                      &ldquo;{req.message}&rdquo;
                     </p>
                   )}
                   <p style={{ fontSize: '0.7rem', color: 'var(--grey)', marginTop: '0.3rem' }}>
-                    Sent {new Date(req.createdAt).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    Sent {new Date(req.created_at).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
                 <div style={{ padding: '0 1.25rem', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.6rem' }}>
