@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, X, ImagePlus } from 'lucide-react'
 import api from '../api/axios'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../api/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import PhoneInput from '../components/PhoneInput'
 
 const NEIGHBORHOODS = [
   'Katutura', 'Khomasdal', 'Klein Windhoek', 'Olympia',
@@ -35,6 +36,7 @@ export default function PostListing() {
   const [previews, setPreviews] = useState([])
   const [submitting, setSubmitting] = useState(false)
 
+  // Role guard — only listers can post
   useEffect(() => {
     if (user && user.role !== 'lister') {
       toast.error('Only listers can post listings')
@@ -67,6 +69,7 @@ export default function PostListing() {
     if (!form.neighborhood) { toast.error('Please select a neighbourhood'); return }
     setSubmitting(true)
     try {
+      // Upload photos directly to Supabase Storage
       let photoUrls = []
       if (photos.length > 0) {
         const uploads = await Promise.all(
@@ -110,6 +113,7 @@ export default function PostListing() {
         <p className="form-sub">Fill in the details to list your property on OpenSpace.</p>
 
         <form onSubmit={handleSubmit}>
+          {/* Basic info */}
           <div className="form-section">
             <div className="form-section-title">Basic information</div>
             <div className="form-field">
@@ -146,6 +150,7 @@ export default function PostListing() {
             </div>
           </div>
 
+          {/* Pricing */}
           <div className="form-section">
             <div className="form-section-title">Pricing</div>
             <div className="form-grid-2">
@@ -162,6 +167,7 @@ export default function PostListing() {
             </div>
           </div>
 
+          {/* Location */}
           <div className="form-section">
             <div className="form-section-title">Location</div>
             <div className="form-grid-2">
@@ -180,6 +186,7 @@ export default function PostListing() {
             </div>
           </div>
 
+          {/* Property details */}
           <div className="form-section">
             <div className="form-section-title">Property details</div>
             <div className="form-grid-2">
@@ -206,6 +213,7 @@ export default function PostListing() {
             </div>
           </div>
 
+          {/* Contact */}
           <div className="form-section">
             <div className="form-section-title">Contact information</div>
             <div className="form-field">
@@ -216,8 +224,11 @@ export default function PostListing() {
             <div className="form-grid-2">
               <div className="form-field">
                 <label className="form-label">Phone *</label>
-                <input required type="tel" placeholder="+264 81 000 0000" value={form.contactPhone}
-                  onChange={e => set('contactPhone', e.target.value)} className="form-input" />
+                <PhoneInput
+                  required
+                  value={form.contactPhone}
+                  onChange={val => set('contactPhone', val)}
+                />
               </div>
               <div className="form-field">
                 <label className="form-label">Email</label>
@@ -227,6 +238,7 @@ export default function PostListing() {
             </div>
           </div>
 
+          {/* Photos */}
           <div className="form-section">
             <div className="form-section-title">Photos</div>
             <label className="photo-upload-zone">
@@ -251,7 +263,8 @@ export default function PostListing() {
 
           <button type="submit" disabled={submitting} className="btn-main"
             style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-            {submitting ? 'Posting…' : <><Upload size={15} strokeWidth={1.8} /> Post listing</>}
+            {submitting ? 'Posting…' : <><Upload size={15} strokeWidth={1.8} /> Post listing</>
+          }
           </button>
         </form>
       </div>
