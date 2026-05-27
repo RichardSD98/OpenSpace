@@ -30,13 +30,6 @@ const HOW_STEPS = [
   { n: '03', title: 'Agree and move in', desc: 'Arrange a viewing, agree on terms, sign a lease, and move in.' },
 ]
 
-const RENTING_TIPS = [
-  { num: '01', title: 'See it before you pay', desc: "Never transfer money before viewing the property in person. Genuine landlords always welcome viewings." },
-  { num: '02', title: 'Meet at the property', desc: 'Arrange to meet the landlord at the actual address — not elsewhere.' },
-  { num: '03', title: 'Get a written lease', desc: 'Always sign a written rental agreement before handing over any money.' },
-  { num: '04', title: 'Trust your gut', desc: 'If something feels off, walk away. No legitimate landlord will pressure you.' },
-]
-
 function CustomSelect({ label, value, options, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -235,27 +228,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Renting Tips ── */}
-      <div className="safety">
-        <div className="safety-left">
-          <h2>Renting in Windhoek,<br />done <em>right</em>.</h2>
-          <p className="safety-sub">
-            OpenSpace connects you directly with landlords. Here's what to keep in mind before you sign anything.
-          </p>
-        </div>
-        <div className="safety-items">
-          {RENTING_TIPS.map(item => (
-            <div key={item.num} className="safety-item">
-              <span className="safety-num">{item.num}</span>
-              <div>
-                <p className="safety-item-title">{item.title}</p>
-                <p className="safety-item-desc">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* ── How It Works ── */}
       <div className="how">
         <div className="how-head reveal">
@@ -339,5 +311,4 @@ export default function Home() {
     </div>
   )
 }
-
 
