@@ -12,6 +12,7 @@ import PostListing from './pages/PostListing'
 import EditListing from './pages/EditListing'
 import MyListings from './pages/MyListings'
 import MyRequests from './pages/MyRequests'
+import VerifyEmail from './pages/VerifyEmail'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/edit-listing/:id" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
             <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
             <Route path="/my-requests" element={<ProtectedRoute><MyRequests /></ProtectedRoute>} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
           </Routes>
           <Toaster
             position="top-right"

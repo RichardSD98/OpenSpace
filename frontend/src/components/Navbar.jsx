@@ -13,6 +13,12 @@ export default function Navbar() {
   }
 
   return (
+    <>
+    {user && !user.isVerified && (
+      <div style={{ background: '#fef3c7', color: '#92400e', textAlign: 'center', padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+        Please verify your email address — check your inbox for a link from OpenSpace.
+      </div>
+    )}
     <nav>
       <a className="logo" href="/">OpenSpace</a>
 
@@ -39,5 +45,6 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+    </>
   )
 }

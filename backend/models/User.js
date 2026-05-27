@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema(
       enum: ['renter', 'lister'],
       default: 'renter',
     },
+    isVerified: { type: Boolean, default: false },
+    verifyToken: { type: String },
+    verifyTokenExpiry: { type: Date },
   },
   { timestamps: true }
 );
