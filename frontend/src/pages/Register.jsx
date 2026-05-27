@@ -16,14 +16,10 @@ export default function Register() {
     setLoading(true)
     try {
       await register(form)
-      toast.success('Account created! Welcome to OpenSpace.')
+      toast.success('Account created! Check your email to verify your address.')
       navigate('/')
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.errors?.[0]?.msg ||
-        'Registration failed'
-      toast.error(msg)
+      toast.error(err.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -36,76 +32,35 @@ export default function Register() {
         <p className="form-sub">Join OpenSpace — find or list rentals in Windhoek.</p>
 
         <div className="role-btns">
-          <button
-            type="button"
-            className={`role-btn${form.role === 'renter' ? ' active' : ''}`}
-            onClick={() => set('role', 'renter')}
-          >
-            I&apos;m a renter
-          </button>
-          <button
-            type="button"
-            className={`role-btn${form.role === 'lister' ? ' active' : ''}`}
-            onClick={() => set('role', 'lister')}
-          >
-            I want to list
-          </button>
+          <button type="button" className={`role-btn${form.role === 'renter' ? ' active' : ''}`}
+            onClick={() => set('role', 'renter')}>I&apos;m a renter</button>
+          <button type="button" className={`role-btn${form.role === 'lister' ? ' active' : ''}`}
+            onClick={() => set('role', 'lister')}>I want to list</button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-field">
             <label className="form-label">Full name</label>
-            <input
-              required
-              type="text"
-              placeholder="John Shilongo"
-              value={form.name}
-              onChange={(e) => set('name', e.target.value)}
-              className="form-input"
-            />
+            <input required type="text" placeholder="John Shilongo" value={form.name}
+              onChange={(e) => set('name', e.target.value)} className="form-input" />
           </div>
-
           <div className="form-field">
             <label className="form-label">Email address</label>
-            <input
-              required
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => set('email', e.target.value)}
-              className="form-input"
-            />
+            <input required type="email" placeholder="you@example.com" value={form.email}
+              onChange={(e) => set('email', e.target.value)} className="form-input" />
           </div>
-
           <div className="form-field">
             <label className="form-label">Phone number</label>
-            <input
-              type="tel"
-              placeholder="+264 81 000 0000"
-              value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
-              className="form-input"
-            />
+            <input type="tel" placeholder="+264 81 000 0000" value={form.phone}
+              onChange={(e) => set('phone', e.target.value)} className="form-input" />
           </div>
-
           <div className="form-field">
             <label className="form-label">Password</label>
-            <input
-              required
-              type="password"
-              placeholder="At least 6 characters"
-              value={form.password}
-              onChange={(e) => set('password', e.target.value)}
-              className="form-input"
-            />
+            <input required type="password" placeholder="At least 6 characters" value={form.password}
+              onChange={(e) => set('password', e.target.value)} className="form-input" />
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-main"
-            style={{ width: '100%', marginTop: '0.75rem', padding: '0.85rem 1.6rem' }}
-          >
+          <button type="submit" disabled={loading} className="btn-main"
+            style={{ width: '100%', marginTop: '0.75rem', padding: '0.85rem 1.6rem' }}>
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
