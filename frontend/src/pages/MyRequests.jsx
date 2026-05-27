@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
@@ -18,15 +19,22 @@ const STATUS_COLOR = {
 }
 
 export default function MyRequests() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (user && user.role !== 'renter') {
+      toast.error('This page is for renters only')
+      navigate('/')
+      return
+    }
     api.get('/view-requests/my')
       .then(r => setRequests(r.data))
       .catch(() => toast.error('Could not load your requests'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user, navigate])
 
   return (
     <main style={{ maxWidth: '860px', margin: '0 auto', padding: '2.5rem 1.25rem' }}>
@@ -51,9 +59,7 @@ export default function MyRequests() {
           {requests.map(req => {
             const listing = req.listing
             if (!listing) return null
-            const photo = listing.photos?.[0]
-              ? listing.photos[0].startsWith('http') ? listing.photos[0] : `/uploads/${listing.photos[0]}`
-              : PLACEHOLDER
+            const photo = listing.photos?.[0] || PLACEHOLDER
 
             return (
               <div key={req._id} style={{

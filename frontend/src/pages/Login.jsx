@@ -17,7 +17,7 @@ export default function Login() {
       toast.success('Welcome back!')
       navigate('/')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed')
+      toast.error(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }

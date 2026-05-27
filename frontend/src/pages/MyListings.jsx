@@ -15,11 +15,16 @@ export default function MyListings() {
   const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
+    if (user && user.role !== 'lister') {
+      toast.error('This page is for listers only')
+      navigate('/')
+      return
+    }
     api.get('/listings/my/listings')
       .then(({ data }) => setListings(data))
       .catch(() => toast.error('Could not load your listings'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user, navigate])
 
   const handleToggleAvailability = async (listing) => {
     try {

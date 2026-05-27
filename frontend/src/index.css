@@ -953,6 +953,49 @@ footer ul li a:hover { color: var(--fg); }
 }
 .form-input::placeholder { color: var(--grey); }
 .form-input:focus { border-color: var(--fg); }
+
+/* ── Phone input with country-code prefix ── */
+.phone-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+.phone-wrap:focus-within { border-color: var(--fg); }
+.phone-prefix {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.75rem;
+  background: var(--bg-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.phone-flag { font-size: 1rem; line-height: 1; }
+.phone-code { font-size: 0.88rem; font-weight: 500; color: var(--fg); letter-spacing: 0.01em; }
+.phone-divider {
+  width: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+.phone-local {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fg);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding: 0.75rem 1rem;
+}
+.phone-local::placeholder { color: var(--grey); }
+
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;

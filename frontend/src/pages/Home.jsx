@@ -24,19 +24,6 @@ const BUDGETS = [
 
 const CHIPS = ['All', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
 
-const HOW_STEPS = [
-  { n: '01', title: 'Browse listings', desc: 'Filter by neighbourhood, unit type, and price. Every listing shows full details upfront.' },
-  { n: '02', title: 'Contact the landlord', desc: 'Send a viewing request or call directly — no middlemen, no commission fees.' },
-  { n: '03', title: 'Agree and move in', desc: 'Arrange a viewing, agree on terms, sign a lease, and move in.' },
-]
-
-const RENTING_TIPS = [
-  { num: '01', title: 'See it before you pay', desc: "Never transfer money before viewing the property in person. Genuine landlords always welcome viewings." },
-  { num: '02', title: 'Meet at the property', desc: 'Arrange to meet the landlord at the actual address — not elsewhere.' },
-  { num: '03', title: 'Get a written lease', desc: 'Always sign a written rental agreement before handing over any money.' },
-  { num: '04', title: 'Trust your gut', desc: 'If something feels off, walk away. No legitimate landlord will pressure you.' },
-]
-
 function CustomSelect({ label, value, options, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -232,46 +219,6 @@ export default function Home() {
               {listings.map((l, i) => <ListingCard key={l._id} listing={l} index={i} />)}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* ── Renting Tips ── */}
-      <div className="safety">
-        <div className="safety-left">
-          <h2>Renting in Windhoek,<br />done <em>right</em>.</h2>
-          <p className="safety-sub">
-            OpenSpace connects you directly with landlords. Here's what to keep in mind before you sign anything.
-          </p>
-        </div>
-        <div className="safety-items">
-          {RENTING_TIPS.map(item => (
-            <div key={item.num} className="safety-item">
-              <span className="safety-num">{item.num}</span>
-              <div>
-                <p className="safety-item-title">{item.title}</p>
-                <p className="safety-item-desc">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── How It Works ── */}
-      <div className="how">
-        <div className="how-head reveal">
-          <h2>How OpenSpace works</h2>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.88rem', color: 'var(--grey)', fontWeight: 300 }}>
-            From search to signing, we make renting in Windhoek straightforward.
-          </p>
-        </div>
-        <div className="steps">
-          {HOW_STEPS.map(s => (
-            <div key={s.n} className="step reveal">
-              <div className="step-n">{s.n}</div>
-              <h3 className="step-title">{s.title}</h3>
-              <p className="step-desc">{s.desc}</p>
-            </div>
-          ))}
         </div>
       </div>
 

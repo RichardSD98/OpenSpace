@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { Sun, Moon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useDarkMode } from '../context/DarkModeContext'
 
@@ -30,9 +31,9 @@ export default function Navbar() {
         {!user && <Link to="/post-listing">List a Space</Link>}
 
         <button className="dm-toggle" onClick={toggle} aria-label="Toggle dark mode">
-          <span className="dm-icon dm-sun">☀</span>
+          <Sun size={13} strokeWidth={1.8} className="dm-icon dm-sun" />
           <span className="dm-track"><span className="dm-thumb"></span></span>
-          <span className="dm-icon dm-moon">☽</span>
+          <Moon size={13} strokeWidth={1.8} className="dm-icon dm-moon" />
         </button>
 
         {user ? (

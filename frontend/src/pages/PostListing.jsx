@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Upload, X, ImagePlus } from 'lucide-react'
 import api from '../api/axios'
+import { supabase } from '../api/supabase'
+import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import PhoneInput from '../components/PhoneInput'
 
 const NEIGHBORHOODS = [
   'Katutura', 'Khomasdal', 'Klein Windhoek', 'Olympia',
@@ -26,10 +30,19 @@ const INITIAL = {
 
 export default function PostListing() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [form, setForm] = useState(INITIAL)
   const [photos, setPhotos] = useState([])
   const [previews, setPreviews] = useState([])
   const [submitting, setSubmitting] = useState(false)
+
+  // Role guard — only listers can post
+  useEffect(() => {
+    if (user && user.role !== 'lister') {
+      toast.error('Only listers can post listings')
+      navigate('/')
+    }
+  }, [user, navigate])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -56,12 +69,24 @@ export default function PostListing() {
     if (!form.neighborhood) { toast.error('Please select a neighbourhood'); return }
     setSubmitting(true)
     try {
+      // Upload photos directly to Supabase Storage
       let photoUrls = []
       if (photos.length > 0) {
-        const fd = new FormData()
-        photos.forEach(f => fd.append('photos', f))
-        const { data } = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-        photoUrls = data.urls
+        const uploads = await Promise.all(
+          photos.map(async (file) => {
+            const ext = file.name.split('.').pop()
+            const path = `${user._id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+            const { error } = await supabase.storage
+              .from('listing-photos')
+              .upload(path, file, { contentType: file.type })
+            if (error) throw new Error(`Upload failed: ${error.message}`)
+            const { data: { publicUrl } } = supabase.storage
+              .from('listing-photos')
+              .getPublicUrl(path)
+            return publicUrl
+          })
+        )
+        photoUrls = uploads
       }
       const payload = {
         ...form,
@@ -75,7 +100,7 @@ export default function PostListing() {
       toast.success('Listing posted!')
       navigate(`/listings/${data._id}`)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to post listing')
+      toast.error(err.response?.data?.message || err.message || 'Failed to post listing')
     } finally {
       setSubmitting(false)
     }
@@ -199,8 +224,11 @@ export default function PostListing() {
             <div className="form-grid-2">
               <div className="form-field">
                 <label className="form-label">Phone *</label>
-                <input required type="tel" placeholder="+264 81 000 0000" value={form.contactPhone}
-                  onChange={e => set('contactPhone', e.target.value)} className="form-input" />
+                <PhoneInput
+                  required
+                  value={form.contactPhone}
+                  onChange={val => set('contactPhone', val)}
+                />
               </div>
               <div className="form-field">
                 <label className="form-label">Email</label>
@@ -214,6 +242,7 @@ export default function PostListing() {
           <div className="form-section">
             <div className="form-section-title">Photos</div>
             <label className="photo-upload-zone">
+              <ImagePlus size={20} strokeWidth={1.5} style={{ marginBottom: '0.4rem', color: 'var(--grey)' }} />
               <p className="photo-upload-hint" style={{ marginBottom: '0.25rem' }}>Click to upload photos</p>
               <p className="photo-upload-hint" style={{ fontSize: '0.75rem' }}>JPEG, PNG — max 5MB each, up to 6 photos</p>
               <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoChange} />
@@ -223,7 +252,9 @@ export default function PostListing() {
                 {previews.map((src, i) => (
                   <div key={i} className="photo-thumb">
                     <img src={src} alt="" />
-                    <button type="button" className="photo-remove" onClick={() => removePhoto(i)}>✕</button>
+                    <button type="button" className="photo-remove" onClick={() => removePhoto(i)}>
+                      <X size={12} strokeWidth={2} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -231,8 +262,8 @@ export default function PostListing() {
           </div>
 
           <button type="submit" disabled={submitting} className="btn-main"
-            style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem' }}>
-            {submitting ? 'Posting…' : 'Post listing'}
+            style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+            {submitting ? 'Posting…' : <><Upload size={15} strokeWidth={1.8} /> Post listing</>}
           </button>
         </form>
       </div>

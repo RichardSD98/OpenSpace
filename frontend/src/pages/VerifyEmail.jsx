@@ -1,29 +1,18 @@
-import { useState, useEffect } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import api from '../api/axios'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { CheckCircle, AlertCircle } from 'lucide-react'
+import { supabase } from '../api/supabase'
 
 export default function VerifyEmail() {
-  const [searchParams] = useSearchParams()
-  const [status, setStatus] = useState('verifying') // verifying | success | error
-  const [message, setMessage] = useState('')
+  const [status, setStatus] = useState('verifying')
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    if (!token) {
-      setStatus('error')
-      setMessage('No verification token found.')
-      return
-    }
-    api.get(`/auth/verify-email?token=${token}`)
-      .then(r => {
-        setStatus('success')
-        setMessage(r.data.message)
-      })
-      .catch(err => {
-        setStatus('error')
-        setMessage(err.response?.data?.message || 'Verification failed.')
-      })
-  }, [searchParams])
+    // Supabase redirects here after clicking the email link.
+    // It automatically handles the token via the URL hash — getSession() picks it up.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setStatus(session ? 'success' : 'error')
+    })
+  }, [])
 
   return (
     <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -33,19 +22,21 @@ export default function VerifyEmail() {
         )}
         {status === 'success' && (
           <>
+            <CheckCircle size={40} strokeWidth={1.5} style={{ color: '#16a34a', marginBottom: '0.75rem' }} />
             <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', marginBottom: '0.75rem' }}>
-              ✓ Email verified
+              Email verified
             </h1>
-            <p style={{ color: 'var(--grey)', marginBottom: '1.5rem' }}>{message}</p>
-            <Link to="/login" className="btn-main">Log in to OpenSpace</Link>
+            <p style={{ color: 'var(--grey)', marginBottom: '1.5rem' }}>Your account is ready. Welcome to OpenSpace.</p>
+            <Link to="/" className="btn-main">Browse listings</Link>
           </>
         )}
         {status === 'error' && (
           <>
+            <AlertCircle size={40} strokeWidth={1.5} style={{ color: '#dc2626', marginBottom: '0.75rem' }} />
             <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', marginBottom: '0.75rem' }}>
               Link expired
             </h1>
-            <p style={{ color: 'var(--grey)', marginBottom: '1.5rem' }}>{message}</p>
+            <p style={{ color: 'var(--grey)', marginBottom: '1.5rem' }}>This verification link is invalid or has expired.</p>
             <Link to="/register" className="btn-main">Register again</Link>
           </>
         )}
@@ -53,3 +44,4 @@ export default function VerifyEmail() {
     </div>
   )
 }
+

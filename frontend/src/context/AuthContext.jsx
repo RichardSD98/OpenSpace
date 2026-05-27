@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/axios';
+import { supabase } from '../api/supabase';
 
 const AuthContext = createContext();
 
@@ -7,35 +7,62 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper: enrich auth user with profile (role, name, phone)
+  const enrichUser = async (authUser) => {
+    if (!authUser) { setUser(null); return; }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+    setUser({
+      _id: authUser.id,
+      id: authUser.id,
+      email: authUser.email,
+      name: profile?.name || authUser.user_metadata?.name || '',
+      phone: profile?.phone || authUser.user_metadata?.phone || '',
+      role: profile?.role || authUser.user_metadata?.role || 'renter',
+      isVerified: !!authUser.email_confirmed_at,
+    });
+  };
+
   useEffect(() => {
-    const stored = localStorage.getItem('openspace_user');
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem('openspace_user');
-      }
-    }
-    setLoading(false);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      enrichUser(session?.user ?? null).finally(() => setLoading(false));
+    });
+
+    // Listen for auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      enrichUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    setUser(data);
-    localStorage.setItem('openspace_user', JSON.stringify(data));
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    await enrichUser(data.user);
     return data;
   };
 
-  const register = async (formData) => {
-    const { data } = await api.post('/auth/register', formData);
-    setUser(data);
-    localStorage.setItem('openspace_user', JSON.stringify(data));
+  const register = async ({ name, email, password, phone, role }) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, phone, role },
+      },
+    });
+    if (error) throw error;
+    await enrichUser(data.user);
     return data;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('openspace_user');
   };
 
   return (
@@ -46,3 +73,4 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+

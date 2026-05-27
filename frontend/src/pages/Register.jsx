@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import PhoneInput from '../components/PhoneInput'
 
 export default function Register() {
   const { register } = useAuth()
@@ -16,14 +17,10 @@ export default function Register() {
     setLoading(true)
     try {
       await register(form)
-      toast.success('Account created! Welcome to OpenSpace.')
+      toast.success('Account created! Check your email to verify your address.')
       navigate('/')
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.errors?.[0]?.msg ||
-        'Registration failed'
-      toast.error(msg)
+      toast.error(err.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -79,12 +76,9 @@ export default function Register() {
 
           <div className="form-field">
             <label className="form-label">Phone number</label>
-            <input
-              type="tel"
-              placeholder="+264 81 000 0000"
+            <PhoneInput
               value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
-              className="form-input"
+              onChange={(val) => set('phone', val)}
             />
           </div>
 

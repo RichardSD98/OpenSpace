@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ImagePlus, X, Save } from 'lucide-react'
 import api from '../api/axios'
+import { supabase } from '../api/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import PhoneInput from '../components/PhoneInput'
 
 const NEIGHBORHOODS = [
   'Katutura', 'Khomasdal', 'Klein Windhoek', 'Olympia',
@@ -73,10 +76,20 @@ export default function EditListing() {
     try {
       let uploadedUrls = []
       if (newPhotos.length > 0) {
-        const fd = new FormData()
-        newPhotos.forEach(f => fd.append('photos', f))
-        const { data } = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-        uploadedUrls = data.urls
+        uploadedUrls = await Promise.all(
+          newPhotos.map(async (file) => {
+            const ext = file.name.split('.').pop()
+            const path = `${user._id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+            const { error } = await supabase.storage
+              .from('listing-photos')
+              .upload(path, file, { contentType: file.type })
+            if (error) throw new Error(`Upload failed: ${error.message}`)
+            const { data: { publicUrl } } = supabase.storage
+              .from('listing-photos')
+              .getPublicUrl(path)
+            return publicUrl
+          })
+        )
       }
       const payload = {
         ...form,
@@ -90,7 +103,7 @@ export default function EditListing() {
       toast.success('Listing updated!')
       navigate(`/listings/${id}`)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Update failed')
+      toast.error(err.response?.data?.message || err.message || 'Update failed')
     } finally {
       setSubmitting(false)
     }
@@ -216,7 +229,10 @@ export default function EditListing() {
             <div className="form-grid-2">
               <div className="form-field">
                 <label className="form-label">Phone</label>
-                <input value={form.contactPhone} onChange={e => set('contactPhone', e.target.value)} className="form-input" />
+                <PhoneInput
+                  value={form.contactPhone}
+                  onChange={val => set('contactPhone', val)}
+                />
               </div>
               <div className="form-field">
                 <label className="form-label">Email</label>
@@ -232,12 +248,15 @@ export default function EditListing() {
                 {form.photos.map((url) => (
                   <div key={url} className="photo-thumb">
                     <img src={url} alt="" />
-                    <button type="button" className="photo-remove" onClick={() => removeExistingPhoto(url)}>✕</button>
+                    <button type="button" className="photo-remove" onClick={() => removeExistingPhoto(url)}>
+                      <X size={12} strokeWidth={2} />
+                    </button>
                   </div>
                 ))}
               </div>
             )}
             <label className="photo-upload-zone">
+              <ImagePlus size={18} strokeWidth={1.5} style={{ marginBottom: '0.3rem', color: 'var(--grey)' }} />
               <p className="photo-upload-hint">Add more photos</p>
               <input type="file" accept="image/*" multiple className="hidden" onChange={handleNewPhotos} />
             </label>
@@ -246,7 +265,9 @@ export default function EditListing() {
                 {newPreviews.map((src, i) => (
                   <div key={i} className="photo-thumb">
                     <img src={src} alt="" />
-                    <button type="button" className="photo-remove" onClick={() => removeNewPhoto(i)}>✕</button>
+                    <button type="button" className="photo-remove" onClick={() => removeNewPhoto(i)}>
+                      <X size={12} strokeWidth={2} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -254,8 +275,8 @@ export default function EditListing() {
           </div>
 
           <button type="submit" disabled={submitting} className="btn-main"
-            style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem' }}>
-            {submitting ? 'Saving…' : 'Save changes'}
+            style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+            {submitting ? 'Saving…' : <><Save size={15} strokeWidth={1.8} /> Save changes</>}
           </button>
         </form>
       </div>

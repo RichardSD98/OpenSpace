@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Phone, Mail, MessageCircle } from 'lucide-react'
+import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { SkeletonDetail } from '../components/Skeleton'
+import MapEmbed from '../components/MapEmbed'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
 
@@ -200,7 +201,10 @@ export default function ListingDetail() {
               </span>
             </div>
             <h1 className="detail-title">{listing.title}</h1>
-            <p className="detail-location">📍 {listing.neighborhood}, Windhoek{listing.address ? ` — ${listing.address}` : ''}</p>
+            <p className="detail-location">
+              <MapPin size={13} strokeWidth={1.8} style={{ marginRight: '0.3rem', flexShrink: 0, display: 'inline' }} />
+              {listing.neighborhood}, Windhoek{listing.address ? ` — ${listing.address}` : ''}
+            </p>
           </div>
 
           {/* Stats */}
@@ -235,11 +239,19 @@ export default function ListingDetail() {
               <h2 className="detail-section-title">Amenities</h2>
               <div className="detail-amenities">
                 {listing.amenities.map(a => (
-                  <span key={a} className="detail-amenity">✓ {a}</span>
+                  <span key={a} className="detail-amenity">
+                    <Check size={12} strokeWidth={2.5} style={{ marginRight: '0.3rem', color: 'var(--green)' }} />
+                    {a}
+                  </span>
                 ))}
               </div>
             </div>
           )}
+          {/* Map */}
+          <div className="detail-section">
+            <h2 className="detail-section-title">Location</h2>
+            <MapEmbed neighborhood={listing.neighborhood} address={listing.address} />
+          </div>
         </div>
 
         {/* Right sidebar */}
@@ -286,7 +298,10 @@ export default function ListingDetail() {
                 Edit listing
               </Link>
             ) : requested ? (
-              <div className="detail-requested">✓ Viewing request sent</div>
+              <div className="detail-requested">
+                <CheckCircle size={16} strokeWidth={1.8} style={{ marginRight: '0.4rem', color: '#16a34a' }} />
+                Viewing request sent
+              </div>
             ) : user && user.role !== 'lister' ? (
               <form onSubmit={handleRequestView} className="detail-request-form">
                 <p style={{ fontSize: '0.75rem', color: 'var(--grey)', marginBottom: '0.6rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
