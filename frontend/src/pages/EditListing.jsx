@@ -277,7 +277,6 @@ export default function EditListing() {
           <button type="submit" disabled={submitting} className="btn-main"
             style={{ width: '100%', padding: '0.9rem 1.6rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
             {submitting ? 'Saving…' : <><Save size={15} strokeWidth={1.8} /> Save changes</>
-          }
           </button>
         </form>
       </div>

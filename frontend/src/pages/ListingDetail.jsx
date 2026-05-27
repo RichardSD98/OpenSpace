@@ -189,7 +189,7 @@ export default function ListingDetail() {
               </div>
             </div>
           )}
-
+          {/* Map */}
           <div className="detail-section">
             <h2 className="detail-section-title">Location</h2>
             <MapEmbed neighborhood={listing.neighborhood} address={listing.address} />
