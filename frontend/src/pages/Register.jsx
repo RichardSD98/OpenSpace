@@ -31,12 +31,26 @@ export default function Register() {
   }
 
   return (
-    <div className="auth-wrap">
-      <div className="auth-card">
-        <div className="auth-head">
-          <a className="logo" href="/">OpenSpace</a>
-          <h1 className="auth-title">Create account</h1>
-          <p className="auth-sub">Join OpenSpace to browse or list rentals in Windhoek.</p>
+    <div className="form-page">
+      <div className="form-wrap">
+        <h1 className="form-heading">Create account</h1>
+        <p className="form-sub">Join OpenSpace to browse or list rentals in Windhoek.</p>
+
+        <div className="role-btns" style={{ marginBottom: '2rem' }}>
+          <button
+            type="button"
+            className={`role-btn${form.role === 'renter' ? ' active' : ''}`}
+            onClick={() => set('role', 'renter')}
+          >
+            Find a rental
+          </button>
+          <button
+            type="button"
+            className={`role-btn${form.role === 'lister' ? ' active' : ''}`}
+            onClick={() => set('role', 'lister')}
+          >
+            List a property
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -52,7 +66,7 @@ export default function Register() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Email</label>
+            <label className="form-label">Email address</label>
             <input
               required
               type="email"
@@ -83,33 +97,19 @@ export default function Register() {
             />
           </div>
 
-          <div className="form-field">
-            <label className="form-label">I want to</label>
-            <div className="role-toggle">
-              <button
-                type="button"
-                className={`role-btn${form.role === 'renter' ? ' active' : ''}`}
-                onClick={() => set('role', 'renter')}
-              >
-                Find a rental
-              </button>
-              <button
-                type="button"
-                className={`role-btn${form.role === 'lister' ? ' active' : ''}`}
-                onClick={() => set('role', 'lister')}
-              >
-                List a property
-              </button>
-            </div>
-          </div>
-
-          <button type="submit" className="btn-submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-main"
+            style={{ width: '100%', marginTop: '0.75rem', padding: '0.85rem 1.6rem' }}
+          >
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 
-        <p className="auth-switch">
-          Already have an account? <Link to="/login">Sign in</Link>
+        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: 'var(--grey)', textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--fg)', fontWeight: 500 }}>Sign in</Link>
         </p>
       </div>
     </div>
