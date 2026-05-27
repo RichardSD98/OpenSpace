@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import PhoneInput from '../components/PhoneInput'
 
 export default function Register() {
   const { register } = useAuth()
@@ -15,9 +16,13 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     try {
-      await register(form)
-      toast.success('Account created! Check your email to verify your address.')
-      navigate('/')
+      await register(form.email, form.password, {
+        name: form.name,
+        phone: form.phone,
+        role: form.role,
+      })
+      toast.success('Check your email to verify your account!')
+      navigate('/verify-email')
     } catch (err) {
       toast.error(err.message || 'Registration failed')
     } finally {
@@ -26,26 +31,12 @@ export default function Register() {
   }
 
   return (
-    <div className="form-page">
-      <div className="form-wrap">
-        <h1 className="form-heading">Create account</h1>
-        <p className="form-sub">Join OpenSpace — find or list rentals in Windhoek.</p>
-
-        <div className="role-btns">
-          <button
-            type="button"
-            className={`role-btn${form.role === 'renter' ? ' active' : ''}`}
-            onClick={() => set('role', 'renter')}
-          >
-            I&apos;m a renter
-          </button>
-          <button
-            type="button"
-            className={`role-btn${form.role === 'lister' ? ' active' : ''}`}
-            onClick={() => set('role', 'lister')}
-          >
-            I want to list
-          </button>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-head">
+          <a className="logo" href="/">OpenSpace</a>
+          <h1 className="auth-title">Create account</h1>
+          <p className="auth-sub">Join OpenSpace to browse or list rentals in Windhoek.</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -53,8 +44,7 @@ export default function Register() {
             <label className="form-label">Full name</label>
             <input
               required
-              type="text"
-              placeholder="John Shilongo"
+              placeholder="Your full name"
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               className="form-input"
@@ -62,7 +52,7 @@ export default function Register() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Email address</label>
+            <label className="form-label">Email</label>
             <input
               required
               type="email"
@@ -75,12 +65,9 @@ export default function Register() {
 
           <div className="form-field">
             <label className="form-label">Phone number</label>
-            <input
-              type="tel"
-              placeholder="+264 81 000 0000"
+            <PhoneInput
               value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
-              className="form-input"
+              onChange={(val) => set('phone', val)}
             />
           </div>
 
@@ -89,26 +76,40 @@ export default function Register() {
             <input
               required
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="Min. 6 characters"
               value={form.password}
               onChange={(e) => set('password', e.target.value)}
               className="form-input"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-main"
-            style={{ width: '100%', marginTop: '0.75rem', padding: '0.85rem 1.6rem' }}
-          >
+          <div className="form-field">
+            <label className="form-label">I want to</label>
+            <div className="role-toggle">
+              <button
+                type="button"
+                className={`role-btn${form.role === 'renter' ? ' active' : ''}`}
+                onClick={() => set('role', 'renter')}
+              >
+                Find a rental
+              </button>
+              <button
+                type="button"
+                className={`role-btn${form.role === 'lister' ? ' active' : ''}`}
+                onClick={() => set('role', 'lister')}
+              >
+                List a property
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="btn-submit" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 
-        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: 'var(--grey)', textAlign: 'center' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--fg)', fontWeight: 500 }}>Sign in</Link>
+        <p className="auth-switch">
+          Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </div>
