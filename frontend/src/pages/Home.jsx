@@ -24,12 +24,6 @@ const BUDGETS = [
 
 const CHIPS = ['All', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
 
-const HOW_STEPS = [
-  { n: '01', title: 'Browse listings', desc: 'Filter by neighbourhood, unit type, and price. Every listing shows full details upfront.' },
-  { n: '02', title: 'Contact the landlord', desc: 'Send a viewing request or call directly — no middlemen, no commission fees.' },
-  { n: '03', title: 'Agree and move in', desc: 'Arrange a viewing, agree on terms, sign a lease, and move in.' },
-]
-
 function CustomSelect({ label, value, options, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -228,25 +222,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── How It Works ── */}
-      <div className="how">
-        <div className="how-head reveal">
-          <h2>How OpenSpace works</h2>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.88rem', color: 'var(--grey)', fontWeight: 300 }}>
-            From search to signing, we make renting in Windhoek straightforward.
-          </p>
-        </div>
-        <div className="steps">
-          {HOW_STEPS.map(s => (
-            <div key={s.n} className="step reveal">
-              <div className="step-n">{s.n}</div>
-              <h3 className="step-title">{s.title}</h3>
-              <p className="step-desc">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* ── Stats ── */}
       <div className="stats-wrap" ref={statsRef}>
         <div className="stats">
@@ -311,4 +286,3 @@ export default function Home() {
     </div>
   )
 }
-
