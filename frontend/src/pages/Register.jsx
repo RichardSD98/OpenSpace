@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
 import PhoneInput from '../components/PhoneInput'
 
 export default function Register() {
@@ -9,11 +8,13 @@ export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', role: 'renter' })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
     setLoading(true)
     try {
       await register({
@@ -23,10 +24,9 @@ export default function Register() {
         phone: form.phone,
         role: form.role,
       })
-      toast.success('Check your email to verify your account!')
-      navigate('/verify-email')
+      navigate('/verify-email', { state: { email: form.email } })
     } catch (err) {
-      toast.error(err.message || 'Registration failed')
+      setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -56,6 +56,12 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit}>
+          {error && (
+            <div className="form-error-banner">
+              {error}
+            </div>
+          )}
+
           <div className="form-field">
             <label className="form-label">Full name</label>
             <input
