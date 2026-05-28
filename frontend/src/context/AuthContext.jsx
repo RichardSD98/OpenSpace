@@ -43,6 +43,10 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (!data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      throw new Error('Please verify your email before signing in. Check your inbox for the verification link.');
+    }
     await enrichUser(data.user);
     return data;
   };
@@ -73,4 +77,3 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-
