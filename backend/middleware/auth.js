@@ -16,7 +16,12 @@ const protect = async (req, res, next) => {
       .eq('id', user.id)
       .single();
 
-    req.user = { ...user, ...profile, _id: user.id };
+    req.user = {
+      ...user,
+      ...profile,
+      _id: user.id,
+      role: profile?.role || user.user_metadata?.role || 'renter',
+    };
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Not authorized' });
@@ -29,4 +34,3 @@ const requireLister = (req, res, next) => {
 };
 
 module.exports = { protect, requireLister };
-
