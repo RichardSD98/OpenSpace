@@ -116,7 +116,7 @@ export default function ListingDetail() {
     </div>
   )
 
-  const photos = listing.photos?.length ? listing.photos : [PLACEHOLDER]
+  const photos = Array.isArray(listing.photos) && listing.photos.length ? listing.photos : [PLACEHOLDER]
   const isOwner = user?._id === listing.landlord?._id
 
   return (
@@ -176,7 +176,7 @@ export default function ListingDetail() {
             </div>
           )}
 
-          {listing.amenities?.length > 0 && (
+          {Array.isArray(listing.amenities) && listing.amenities.length > 0 && (
             <div className="detail-section">
               <h2 className="detail-section-title">Amenities</h2>
               <div className="detail-amenities">
