@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     const { unitType, neighborhood, minRent, maxRent, available, page = 1, limit = 12 } = req.query;
     let query = supabase
       .from('listings')
-      .select('*, landlord:profiles(id, name, email, phone)', { count: 'exact' })
+      .select('*, landlord:profiles(id, name, phone)', { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (unitType) query = query.eq('unit_type', unitType);
@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('listings')
-      .select('*, landlord:profiles(id, name, email, phone)')
+      .select('*, landlord:profiles(id, name, phone)')
       .eq('id', req.params.id)
       .single();
     if (error || !data) return res.status(404).json({ message: 'Listing not found' });
