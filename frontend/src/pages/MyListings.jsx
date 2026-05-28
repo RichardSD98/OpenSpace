@@ -15,16 +15,25 @@ export default function MyListings() {
   const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
-    if (user && user.role !== 'lister') {
-      toast.error('This page is for listers only')
-      navigate('/')
-      return
-    }
-    api.get('/listings/my/listings')
-      .then(({ data }) => setListings(data))
-      .catch(() => toast.error('Could not load your listings'))
-      .finally(() => setLoading(false))
-  }, [user, navigate])
+  if (user && user.role !== 'lister') {
+    toast.error('This page is for listers only')
+    navigate('/')
+    return
+  }
+  api.get('/listings/my/listings')
+    .then(({ data }) => {
+      // Guard: if Express matched /:id route instead, data won't be an array
+      if (!Array.isArray(data)) {
+        console.error('Expected array, got:', data)
+        toast.error('Could not load your listings — unexpected response')
+        setListings([])
+        return
+      }
+      setListings(data)
+    })
+    .catch(() => toast.error('Could not load your listings'))
+    .finally(() => setLoading(false))
+}, [user, navigate])
 
   const handleToggleAvailability = async (listing) => {
     try {
