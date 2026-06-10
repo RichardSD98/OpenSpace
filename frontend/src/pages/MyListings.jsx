@@ -22,16 +22,18 @@ export default function MyListings() {
   }
   api.get('/listings/my/listings')
     .then(({ data }) => {
-      // Guard: if Express matched /:id route instead, data won't be an array
       if (!Array.isArray(data)) {
-        console.error('Expected array, got:', data)
-        toast.error('Could not load your listings — unexpected response')
+        console.error('Expected array, got:', typeof data, data)
+        const hint = typeof data === 'string' && data.includes('<!DOCTYPE')
+          ? ' (received HTML — check VITE_API_URL in Vercel env vars)'
+          : ''
+        toast.error('Could not load your listings — unexpected response' + hint)
         setListings([])
         return
       }
       setListings(data)
     })
-    .catch(() => toast.error('Could not load your listings'))
+    .catch((err) => toast.error(err.response?.data?.message || 'Could not load your listings'))
     .finally(() => setLoading(false))
 }, [user, navigate])
 
