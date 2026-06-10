@@ -15,7 +15,7 @@ router.get('/all', protect, async (req, res) => {
     const listingIds = listings.map(l => l.id);
     const { data, error } = await supabase
       .from('view_requests')
-      .select('*, listing:listings(id, title, neighborhood, photos), renter:profiles(id, name, email, phone)')
+      .select('*, listing:listings(id, title, neighborhood, photos), renter:profiles(id, name, phone)')
       .in('listing_id', listingIds)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -41,7 +41,7 @@ router.patch('/:id/status', protect, async (req, res) => {
 
     const { data: viewReq, error: fetchErr } = await supabase
       .from('view_requests')
-      .select('*, listing:listings(id, title, landlord_id), renter:profiles(id, name, email)')
+      .select('*, listing:listings(id, title, landlord_id), renter:profiles(id, name, phone)')
       .eq('id', req.params.id)
       .single();
     if (fetchErr || !viewReq) return res.status(404).json({ message: 'Request not found' });
@@ -54,13 +54,18 @@ router.patch('/:id/status', protect, async (req, res) => {
     if (error) throw error;
 
     try {
-      if (viewReq.renter?.email) {
-        await sendViewRequestStatusEmail({
-          renterName: viewReq.renter.name,
-          renterEmail: viewReq.renter.email,
-          listingTitle: viewReq.listing.title,
-          status,
-        });
+      if (viewReq.renter_id) {
+        // email lives in auth.users, not profiles — fetch via admin API
+        const { data: authUser } = await supabase.auth.admin.getUserById(viewReq.renter_id);
+        const renterEmail = authUser?.user?.email
+        if (renterEmail) {
+          await sendViewRequestStatusEmail({
+            renterName: viewReq.renter?.name,
+            renterEmail,
+            listingTitle: viewReq.listing.title,
+            status,
+          });
+        }
       }
     } catch (emailErr) {
       console.warn('Status notification email failed:', emailErr.message);
@@ -147,7 +152,7 @@ router.get('/listing/:listingId', protect, async (req, res) => {
 
     const { data, error } = await supabase
       .from('view_requests')
-      .select('*, renter:profiles(id, name, email, phone)')
+      .select('*, renter:profiles(id, name, phone)')
       .eq('listing_id', req.params.listingId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -159,6 +164,59 @@ router.get('/listing/:listingId', protect, async (req, res) => {
     res.json(requests);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/view-requests/pending-count — lister sees number of pending requests
+router.get('/pending-count', protect, async (req, res) => {
+  try {
+    const { data: listings, error: listErr } = await supabase
+      .from('listings').select('id').eq('landlord_id', req.user._id);
+    if (listErr) throw listErr;
+    if (!listings || listings.length === 0) return res.json({ count: 0 });
+
+    const listingIds = listings.map(l => l.id);
+    const { count, error } = await supabase
+      .from('view_requests')
+      .select('id', { count: 'exact', head: true })
+      .in('listing_id', listingIds)
+      .eq('status', 'pending');
+    if (error) throw error;
+    res.json({ count: count || 0 });
+  } catch (err) {
+    res.status(500).json({ count: 0 });
+  }
+});
+
+// GET /api/view-requests/unseen-count — renter sees how many responses they haven't read
+router.get('/unseen-count', protect, async (req, res) => {
+  try {
+    const { count, error } = await supabase
+      .from('view_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('renter_id', req.user._id)
+      .neq('status', 'pending')
+      .eq('renter_seen', false);
+    if (error) throw error;
+    res.json({ count: count || 0 });
+  } catch (err) {
+    res.status(500).json({ count: 0 });
+  }
+});
+
+// PATCH /api/view-requests/mark-seen — renter marks all responses as seen
+router.patch('/mark-seen', protect, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('view_requests')
+      .update({ renter_seen: true })
+      .eq('renter_id', req.user._id)
+      .neq('status', 'pending')
+      .eq('renter_seen', false);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false });
   }
 });
 

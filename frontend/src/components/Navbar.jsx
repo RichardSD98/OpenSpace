@@ -3,6 +3,23 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Sun, Moon, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useDarkMode } from '../context/DarkModeContext'
+import api from '../api/axios'
+
+function RequestsBadge({ count }) {
+  if (!count) return null
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      background: '#dc2626', color: '#fff',
+      fontSize: '0.6rem', fontWeight: 700, lineHeight: 1,
+      minWidth: '16px', height: '16px', borderRadius: '8px',
+      padding: '0 4px', marginLeft: '5px',
+      verticalAlign: 'middle', position: 'relative', top: '-1px',
+    }}>
+      {count > 9 ? '9+' : count}
+    </span>
+  )
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -10,9 +27,31 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
+  const [unseenCount, setUnseenCount] = useState(0)
 
   // Close mobile menu on route change
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
+
+  // Fetch pending request count for listers
+  useEffect(() => {
+    if (user?.role !== 'lister') { setPendingCount(0); return }
+    const fetch = () => {
+      api.get('/view-requests/pending-count')
+        .then(r => setPendingCount(r.data?.count || 0))
+        .catch(() => {})
+    }
+    fetch()
+    // Re-check whenever they navigate (they may have just acted on a request)
+  }, [user, location.pathname])
+
+  // Fetch unseen response count for renters
+  useEffect(() => {
+    if (user?.role !== 'renter') { setUnseenCount(0); return }
+    api.get('/view-requests/unseen-count')
+      .then(r => setUnseenCount(r.data?.count || 0))
+      .catch(() => {})
+  }, [user, location.pathname])
 
   const handleLogout = () => {
     logout()
@@ -34,8 +73,16 @@ export default function Navbar() {
         <Link to="/">Browse</Link>
         {user?.role === 'lister' && <Link to="/post-listing">List a Space</Link>}
         {user?.role === 'lister' && <Link to="/my-listings">My Listings</Link>}
-        {user?.role === 'lister' && <Link to="/viewing-requests">Requests</Link>}
-        {user?.role === 'renter' && <Link to="/my-requests">My Requests</Link>}
+        {user?.role === 'lister' && (
+          <Link to="/viewing-requests" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            Requests<RequestsBadge count={pendingCount} />
+          </Link>
+        )}
+        {user?.role === 'renter' && (
+          <Link to="/my-requests" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            My Requests<RequestsBadge count={unseenCount} />
+          </Link>
+        )}
         {user?.role === 'renter' && <Link to="/favourites">Saved</Link>}
         {!user && <Link to="/post-listing">List a Space</Link>}
         {user && <Link to="/profile">Profile</Link>}
@@ -82,8 +129,16 @@ export default function Navbar() {
         <Link to="/">Browse</Link>
         {user?.role === 'lister' && <Link to="/post-listing">List a Space</Link>}
         {user?.role === 'lister' && <Link to="/my-listings">My Listings</Link>}
-        {user?.role === 'lister' && <Link to="/viewing-requests">Requests</Link>}
-        {user?.role === 'renter' && <Link to="/my-requests">My Requests</Link>}
+        {user?.role === 'lister' && (
+          <Link to="/viewing-requests" style={{ display: 'flex', alignItems: 'center' }}>
+            Requests<RequestsBadge count={pendingCount} />
+          </Link>
+        )}
+        {user?.role === 'renter' && (
+          <Link to="/my-requests" style={{ display: 'flex', alignItems: 'center' }}>
+            My Requests<RequestsBadge count={unseenCount} />
+          </Link>
+        )}
         {user?.role === 'renter' && <Link to="/favourites">Saved</Link>}
         {!user && <Link to="/post-listing">List a Space</Link>}
         {user && <Link to="/profile">Profile</Link>}

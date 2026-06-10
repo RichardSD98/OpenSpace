@@ -26,6 +26,8 @@ export default function MyRequests() {
       .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error('Could not load your requests'))
       .finally(() => setLoading(false))
+    // Mark all responded requests as seen (clears the navbar badge)
+    api.patch('/view-requests/mark-seen').catch(() => {})
   }, [user, navigate])
 
   const handleCancel = async (id) => {
