@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const upload = require('../middleware/upload');
 const { protect } = require('../middleware/auth');
 const supabase = require('../config/supabase');
@@ -18,7 +18,7 @@ router.post('/', protect, upload.array('photos', 6), async (req, res) => {
     const uploads = await Promise.all(
       req.files.map(async (file) => {
         const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-        const filename = `${uuidv4()}${ext}`;
+        const filename = `${randomUUID()}${ext}`;
 
         const { error } = await supabase.storage
           .from(BUCKET)
