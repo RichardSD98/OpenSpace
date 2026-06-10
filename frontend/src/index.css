@@ -1540,6 +1540,56 @@ footer ul li a:hover { color: var(--fg); }
 }
 
 /* ─── Responsive ────────────────────────────────────────────────────── */
+
+/* Hamburger / mobile nav */
+.nav-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg);
+  padding: 0.25rem;
+  flex-shrink: 0;
+}
+.nav-mobile-right {
+  display: none;
+  align-items: center;
+  gap: 1rem;
+}
+.nav-drawer {
+  position: sticky;
+  top: 60px;
+  z-index: 99;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 5%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.nav-drawer a {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--fg);
+  text-decoration: none;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+  display: block;
+}
+.nav-drawer a:last-of-type { border-bottom: none; }
+.nav-drawer-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .nav-right { display: none !important; }
+  .nav-hamburger { display: flex; }
+  .nav-mobile-right { display: flex; }
+}
+
 @media (max-width: 960px) {
   .listings {
     grid-template-columns: repeat(2, 1fr);
@@ -1566,21 +1616,75 @@ footer ul li a:hover { color: var(--fg); }
 }
 
 @media (max-width: 640px) {
+  /* listings */
   .listings { grid-template-columns: 1fr; }
-  .listing { border-right: none; padding-left: 0; }
-  .listing:nth-child(3n) { border-right: none; }
-  .listing:nth-child(2n) { border-right: none; }
-  .listing:nth-child(2n+1) { padding-left: 0; }
-  .hero { padding: 4rem 5% 3rem; }
-  .safety { padding: 2rem; margin: 2rem 5%; }
+  .listing { border-right: none; padding-left: 0 !important; }
+
+  /* hero */
+  .hero { padding: 3rem 5% 2.5rem; }
+  .hero h1 { font-size: clamp(2rem, 9vw, 2.8rem); }
+
+  /* safety */
+  .safety { padding: 1.75rem; margin: 2rem 5%; }
+
+  /* footer */
   .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+
+  /* search */
   .search-row { grid-template-columns: 1fr; }
   .s-field { border-right: none; border-bottom: 1px solid var(--border); }
+  .s-field:last-of-type { border-bottom: none; }
+
+  /* forms */
   .form-grid-2 { grid-template-columns: 1fr; }
-  .nav-right { gap: 1rem; }
-  .stats { grid-template-columns: repeat(2, 1fr); }
+  .form-page { padding: 2rem 4%; align-items: flex-start; padding-top: 3rem; }
+  .form-heading { font-size: 1.65rem; }
+
+  /* auth */
+  .auth-wrap { padding: 2rem 4%; align-items: flex-start; padding-top: 3rem; }
+  .auth-card { padding: 1.75rem 1.25rem; }
+
+  /* detail page */
+  .detail-wrap { padding: 1.5rem 4% 4rem; }
+  .detail-main-photo { height: 240px; }
+  .detail-main-placeholder { height: 240px; }
   .detail-info-grid { grid-template-columns: 1fr; }
   .detail-info-cell:nth-child(2n) { border-right: none; }
+  .detail-info-cell:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .detail-info-cell:last-child { border-bottom: none; }
+  .detail-sidebar-card { position: static; }
+
+  /* stats */
+  .stats { grid-template-columns: repeat(2, 1fr); }
+
+  /* section header */
+  .sec-head { flex-wrap: wrap; gap: 0.5rem; padding: 2rem 5% 1rem; }
+
+  /* my listings row */
+  .my-listing-row { flex-wrap: wrap; gap: 0.75rem; padding: 1rem; }
+  .my-listing-thumb { width: 48px; height: 48px; }
+  .my-listing-info { min-width: calc(100% - 60px); }
+  .my-listing-price { width: 100%; order: 3; }
+  .my-listing-actions { width: 100%; order: 4; flex-wrap: wrap; }
+
+  /* photo grid */
+  .photo-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* search wrap */
+  .search-wrap { padding: 1.5rem 5%; }
+
+  /* trust line */
+  .trust-line { gap: 1rem; }
+}
+
+@media (max-width: 400px) {
+  .hero h1 { font-size: 1.85rem; }
+  .safety { padding: 1.25rem; }
+  .detail-main-photo, .detail-main-placeholder { height: 200px; }
+  .stats { grid-template-columns: 1fr; }
+  .stat { border-right: none; border-bottom: 1px solid var(--border); }
+  .stat:last-child { border-bottom: none; }
 }
 
 /* ─── Additional utility classes ─────────────────────────────────────── */
