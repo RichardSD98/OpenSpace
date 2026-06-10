@@ -5,6 +5,17 @@ import ListingCard from '../components/ListingCard'
 import { SkeletonCard } from '../components/Skeleton'
 import { useReveal } from '../context/useReveal'
 
+function useRecentlyViewed() {
+  const [recent, setRecent] = useState([])
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('os_recently_viewed') || '[]')
+      setRecent(stored.slice(0, 4))
+    } catch {}
+  }, [])
+  return recent
+}
+
 const UNIT_TYPES = [
   { label: 'Any type', value: '' },
   { label: 'Apartment', value: 'Apartment' },
@@ -71,6 +82,7 @@ export default function Home() {
   const [budget, setBudget] = useState(BUDGETS[0])
   const [activeChip, setActiveChip] = useState('All')
   const [counts, setCounts] = useState({ total: 0, hoods: 0 })
+  const recent = useRecentlyViewed()
   const statsRef = useRef(null)
   const listingsRef = useRef(null)
   const pageRef = useReveal()
@@ -221,6 +233,20 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* ── Recently Viewed ── */}
+      {recent.length > 0 && (
+        <div>
+          <div className="sec-head">
+            <h2>Recently viewed</h2>
+          </div>
+          <div className="listings-wrap">
+            <div className="listings" style={{ gridTemplateColumns: `repeat(${Math.min(recent.length, 4)}, 1fr)` }}>
+              {recent.map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Stats ── */}
       <div className="stats-wrap" ref={statsRef}>

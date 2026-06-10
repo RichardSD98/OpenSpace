@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart } from 'lucide-react'
+import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart, Share2, Copy, Check as CheckIcon } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -81,10 +81,20 @@ export default function ListingDetail() {
   const [message, setMessage] = useState('')
   const [isFavourited, setIsFavourited] = useState(false)
   const [togglingFav, setTogglingFav] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     api.get(`/listings/${id}`)
-      .then(({ data }) => setListing(data))
+      .then(({ data }) => {
+        setListing(data)
+        // Track recently viewed in localStorage
+        try {
+          const key = 'os_recently_viewed'
+          const prev = JSON.parse(localStorage.getItem(key) || '[]')
+          const updated = [data, ...prev.filter(l => l.id !== data.id)].slice(0, 6)
+          localStorage.setItem(key, JSON.stringify(updated))
+        } catch {}
+      })
       .catch(() => toast.error('Listing not found'))
       .finally(() => setLoading(false))
   }, [id])
@@ -95,6 +105,18 @@ export default function ListingDetail() {
       .then(({ data }) => setIsFavourited(data.includes(id)))
       .catch(() => {})
   }, [user, id])
+
+  const handleShare = async () => {
+    const url = window.location.href
+    const title = listing?.title || 'Check out this listing on OpenSpace'
+    if (navigator.share) {
+      try { await navigator.share({ title, url }) } catch {}
+    } else {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   const handleToggleFavourite = async () => {
     if (!user) { toast.error('Please log in to save listings'); navigate('/login'); return }
@@ -232,22 +254,40 @@ export default function ListingDetail() {
                 <p className="detail-price">N${listing.rent.toLocaleString()}<span>/mo</span></p>
                 {listing.deposit > 0 && <p className="detail-deposit">Deposit: N${listing.deposit.toLocaleString()}</p>}
               </div>
-              {!isOwner && (
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <button
-                  onClick={handleToggleFavourite}
-                  disabled={togglingFav}
-                  title={isFavourited ? 'Remove from saved' : 'Save listing'}
+                  onClick={handleShare}
+                  title={copied ? 'Link copied!' : 'Share listing'}
                   style={{
                     background: 'none', border: '1px solid var(--border)',
                     borderRadius: '2px', padding: '0.45rem 0.55rem',
                     cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    color: isFavourited ? '#dc2626' : 'var(--grey)',
-                    flexShrink: 0,
+                    color: copied ? 'var(--green)' : 'var(--grey)',
+                    borderColor: copied ? 'var(--green-border)' : 'var(--border)',
                   }}
                 >
-                  <Heart size={15} fill={isFavourited ? 'currentColor' : 'none'} strokeWidth={isFavourited ? 0 : 1.8} />
+                  {copied
+                    ? <CheckIcon size={15} strokeWidth={2.5} />
+                    : <Share2 size={15} strokeWidth={1.8} />
+                  }
                 </button>
-              )}
+                {!isOwner && (
+                  <button
+                    onClick={handleToggleFavourite}
+                    disabled={togglingFav}
+                    title={isFavourited ? 'Remove from saved' : 'Save listing'}
+                    style={{
+                      background: 'none', border: '1px solid var(--border)',
+                      borderRadius: '2px', padding: '0.45rem 0.55rem',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      color: isFavourited ? '#dc2626' : 'var(--grey)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Heart size={15} fill={isFavourited ? 'currentColor' : 'none'} strokeWidth={isFavourited ? 0 : 1.8} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
