@@ -26,6 +26,7 @@ router.get('/all', protect, async (req, res) => {
       renter: r.renter ? { _id: r.renter.id, ...r.renter } : null,
     })));
   } catch (err) {
+    console.error('[GET /view-requests/all]', err.message, err.code || '');
     res.status(500).json({ message: err.message });
   }
 });
