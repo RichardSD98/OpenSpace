@@ -68,7 +68,7 @@ export default function MyRequests() {
             const photo = listing.photos?.[0] || PLACEHOLDER
 
             return (
-              <div key={req.id} style={{{
+              <div key={req.id} style={{
                 display: 'grid',
                 gridTemplateColumns: '100px 1fr auto',
                 gap: '1.25rem',
