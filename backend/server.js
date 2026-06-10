@@ -32,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
+app.use('/api/upload', require('./routes/upload'));
 app.use('/api/view-requests', require('./routes/viewRequests'));
 app.use('/api/favourites', require('./routes/favourites'));
 
