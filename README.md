@@ -59,6 +59,10 @@ PORT=5000
 MONGO_URI=mongodb://localhost:27017/openspace
 JWT_SECRET=change_this_to_a_long_random_secret
 CLIENT_URL=http://localhost:5173
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+TURNSTILE_SECRET_KEY=your_cloudflare_turnstile_secret_optional
 ```
 
 Start the backend:
@@ -75,6 +79,76 @@ npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173)
+
+---
+
+## Password Reset Security Setup
+
+The forgot-password flow uses secure reset links, CAPTCHA validation, and rate limiting.
+
+### Frontend environment
+
+Add this to `frontend/.env` if CAPTCHA should be enabled:
+
+```env
+VITE_TURNSTILE_SITE_KEY=your_cloudflare_turnstile_site_key
+```
+
+### Audit logging table (Supabase SQL)
+
+Run this in your Supabase SQL editor to store password reset audit events:
+
+```sql
+create table if not exists public.security_audit_logs (
+    id bigserial primary key,
+    event_type text not null,
+    event_status text not null,
+    email_hash text,
+    ip_hash text,
+    user_agent text,
+    reason text,
+    metadata jsonb default '{}'::jsonb,
+    created_at timestamptz not null default now()
+);
+
+alter table public.security_audit_logs enable row level security;
+
+create index if not exists idx_security_audit_logs_created_at on public.security_audit_logs(created_at desc);
+create index if not exists idx_security_audit_logs_event_type on public.security_audit_logs(event_type);
+```
+
+### Favourites table (Supabase SQL)
+
+Run this to enable saved listings for renters:
+
+```sql
+create table if not exists public.favourites (
+  id bigserial primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  listing_id uuid not null references public.listings(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint favourites_unique unique (user_id, listing_id)
+);
+
+alter table public.favourites enable row level security;
+
+create policy "Users manage own favourites"
+  on public.favourites
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists idx_favourites_user_id on public.favourites(user_id);
+```
+
+### Security behavior
+
+- Uses non-enumerating responses so users cannot confirm if an email exists.
+- Applies request throttling to both forgot-password and reset-password endpoints.
+- Enforces strong password complexity and minimum length.
+- Rejects password reuse when the new password matches the current one.
+- Recommends MFA after successful reset.
+- Requires HTTPS in production and applies secure HTTP headers.
 
 ---
 
@@ -135,9 +209,15 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ## Windhoek Neighbourhoods Supported
 
-Katutura · Khomasdal · Klein Windhoek · Olympia · Pioneerspark · Eros ·
-Windhoek West · Hochland Park · Suiderhof · Rocky Crest · Otjomuise ·
-Havana · Academia · Ludwigsdorf · Other
+**Central & inner city:** City Centre · Windhoek West · Klein Windhoek · Eros · Ludwigsdorf · Auasblick
+
+**Northern suburbs:** Katutura · Wanaheda · Havana · Otjomuise · Greenwell Matongo
+
+**Southern suburbs:** Khomasdal · Suiderhof · Hochland Park · Dorado Park · Cimbebasia · Prosperita
+
+**Eastern suburbs:** Olympia · Pioneers Park · Academia · Rocky Crest · Sunset · Avis
+
+**Other areas:** Brakwater · Goreangab · Otjomuise Extension · Rehoboth Road Corridor · Dordabis Road Corridor · Other
 
 
 

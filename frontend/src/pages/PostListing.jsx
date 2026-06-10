@@ -6,13 +6,9 @@ import { supabase } from '../api/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import PhoneInput from '../components/PhoneInput'
-
-const NEIGHBORHOODS = [
-  'Katutura', 'Khomasdal', 'Klein Windhoek', 'Olympia',
-  'Pioneers Park', 'Rocky Crest', 'Hochland Park', 'Eros',
-  'Ludwigsdorf', 'Academia', 'Otjomuise', 'Wanaheda',
-  'Dorado Park', 'Auasblick', 'Suiderhof',
-]
+import { NEIGHBORHOODS } from '../lib/neighborhoods'
+import SelectDropdown from '../components/SelectDropdown'
+import DatePicker from '../components/DatePicker'
 
 const AMENITIES_OPTIONS = [
   'WiFi', 'Water included', 'Electricity included', 'Parking',
@@ -142,22 +138,26 @@ export default function PostListing() {
             <div className="form-grid-2">
               <div className="form-field">
                 <label className="form-label">Unit type *</label>
-                <select required value={form.unitType} onChange={e => set('unitType', e.target.value)} className="form-input">
-                  {[
+                <SelectDropdown
+                  required
+                  value={form.unitType}
+                  onChange={v => set('unitType', v)}
+                  options={[
                     { value: 'apartment', label: 'Apartment' },
                     { value: 'flat', label: 'Flat' },
                     { value: 'single room', label: 'Single Room' },
                     { value: 'studio', label: 'Studio' },
-                  ].map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
+                  ]}
+                />
               </div>
               <div className="form-field">
                 <label className="form-label">Available from *</label>
-                <input required type="date" value={form.availableFrom}
+                <DatePicker
+                  required
+                  value={form.availableFrom}
+                  onChange={v => set('availableFrom', v)}
                   min={new Date().toISOString().split('T')[0]}
-                  onChange={e => set('availableFrom', e.target.value)} className="form-input" />
+                />
               </div>
             </div>
           </div>
@@ -185,10 +185,14 @@ export default function PostListing() {
             <div className="form-grid-2">
               <div className="form-field">
                 <label className="form-label">Neighbourhood *</label>
-                <select required value={form.neighborhood} onChange={e => set('neighborhood', e.target.value)} className="form-input">
-                  <option value="">Select neighbourhood</option>
-                  {NEIGHBORHOODS.map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <SelectDropdown
+                  required
+                  searchable
+                  value={form.neighborhood}
+                  onChange={v => set('neighborhood', v)}
+                  options={NEIGHBORHOODS}
+                  placeholder="Select neighbourhood"
+                />
               </div>
               <div className="form-field">
                 <label className="form-label">Street address</label>

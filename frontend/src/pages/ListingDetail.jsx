@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle } from 'lucide-react'
+import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -79,6 +79,8 @@ export default function ListingDetail() {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
   const [message, setMessage] = useState('')
+  const [isFavourited, setIsFavourited] = useState(false)
+  const [togglingFav, setTogglingFav] = useState(false)
 
   useEffect(() => {
     api.get(`/listings/${id}`)
@@ -86,6 +88,33 @@ export default function ListingDetail() {
       .catch(() => toast.error('Listing not found'))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (!user || !id) return
+    api.get('/favourites/ids')
+      .then(({ data }) => setIsFavourited(data.includes(id)))
+      .catch(() => {})
+  }, [user, id])
+
+  const handleToggleFavourite = async () => {
+    if (!user) { toast.error('Please log in to save listings'); navigate('/login'); return }
+    setTogglingFav(true)
+    try {
+      if (isFavourited) {
+        await api.delete(`/favourites/${id}`)
+        setIsFavourited(false)
+        toast.success('Removed from saved')
+      } else {
+        await api.post(`/favourites/${id}`)
+        setIsFavourited(true)
+        toast.success('Saved to favourites')
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update saved listings')
+    } finally {
+      setTogglingFav(false)
+    }
+  }
 
   const photoCount = listing?.photos?.length || 1
   const lightboxPrev = useCallback(() => setActivePhoto(i => (i - 1 + photoCount) % photoCount), [photoCount])
@@ -198,8 +227,28 @@ export default function ListingDetail() {
 
         <aside className="detail-sidebar">
           <div className="detail-price-card">
-            <p className="detail-price">N${listing.rent.toLocaleString()}<span>/mo</span></p>
-            {listing.deposit > 0 && <p className="detail-deposit">Deposit: N${listing.deposit.toLocaleString()}</p>}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <p className="detail-price">N${listing.rent.toLocaleString()}<span>/mo</span></p>
+                {listing.deposit > 0 && <p className="detail-deposit">Deposit: N${listing.deposit.toLocaleString()}</p>}
+              </div>
+              {!isOwner && (
+                <button
+                  onClick={handleToggleFavourite}
+                  disabled={togglingFav}
+                  title={isFavourited ? 'Remove from saved' : 'Save listing'}
+                  style={{
+                    background: 'none', border: '1px solid var(--border)',
+                    borderRadius: '2px', padding: '0.45rem 0.55rem',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    color: isFavourited ? '#dc2626' : 'var(--grey)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Heart size={15} fill={isFavourited ? 'currentColor' : 'none'} strokeWidth={isFavourited ? 0 : 1.8} />
+                </button>
+              )}
+            </div>
 
             <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
               <h3 className="detail-contact-title">Contact landlord</h3>

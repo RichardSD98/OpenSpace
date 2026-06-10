@@ -1,24 +1,7 @@
 import { HiAdjustments } from 'react-icons/hi';
+import { NEIGHBORHOODS } from '../lib/neighborhoods';
 
 const UNIT_TYPES = ['apartment', 'flat', 'single room', 'studio'];
-
-const NEIGHBORHOODS = [
-  'Katutura',
-  'Khomasdal',
-  'Klein Windhoek',
-  'Olympia',
-  'Pioneerspark',
-  'Eros',
-  'Windhoek West',
-  'Hochland Park',
-  'Suiderhof',
-  'Rocky Crest',
-  'Otjomuise',
-  'Havana',
-  'Academia',
-  'Ludwigsdorf',
-  'Other',
-];
 
 export default function FilterSidebar({ filters, onChange, onReset }) {
   const set = (key, value) => onChange({ ...filters, [key]: value });

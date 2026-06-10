@@ -6,23 +6,15 @@ import toast from 'react-hot-toast'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
-const STATUS_LABEL = {
-  pending: 'Pending',
-  accepted: 'Accepted',
-  declined: 'Declined',
-}
-
-const STATUS_COLOR = {
-  pending: '#b45309',
-  accepted: '#16a34a',
-  declined: '#dc2626',
-}
+const STATUS_LABEL = { pending: 'Pending', accepted: 'Accepted', declined: 'Declined' }
+const STATUS_COLOR = { pending: '#b45309', accepted: '#16a34a', declined: '#dc2626' }
 
 export default function MyRequests() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [cancellingId, setCancellingId] = useState(null)
 
   useEffect(() => {
     if (user && user.role !== 'renter') {
@@ -35,6 +27,20 @@ export default function MyRequests() {
       .catch(() => toast.error('Could not load your requests'))
       .finally(() => setLoading(false))
   }, [user, navigate])
+
+  const handleCancel = async (id) => {
+    if (!window.confirm('Cancel this viewing request?')) return
+    setCancellingId(id)
+    try {
+      await api.delete(`/view-requests/${id}`)
+      setRequests(rs => rs.filter(r => r.id !== id))
+      toast.success('Request cancelled')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not cancel request')
+    } finally {
+      setCancellingId(null)
+    }
+  }
 
   return (
     <main style={{ maxWidth: '860px', margin: '0 auto', padding: '2.5rem 1.25rem' }}>
@@ -93,17 +99,27 @@ export default function MyRequests() {
                 </div>
                 <div style={{ padding: '0 1.25rem', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.6rem' }}>
                   <span style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: STATUS_COLOR[req.status] || STATUS_COLOR.pending,
+                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em',
+                    textTransform: 'uppercase', color: STATUS_COLOR[req.status] || STATUS_COLOR.pending,
                   }}>
                     {STATUS_LABEL[req.status] || 'Pending'}
                   </span>
                   <Link to={`/listings/${listing._id}`} style={{ fontSize: '0.75rem', color: 'var(--fg)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                     View listing
                   </Link>
+                  {(!req.status || req.status === 'pending') && (
+                    <button
+                      onClick={() => handleCancel(req.id)}
+                      disabled={cancellingId === req.id}
+                      style={{
+                        fontSize: '0.72rem', color: '#dc2626', background: 'none',
+                        border: 'none', cursor: 'pointer', textDecoration: 'underline',
+                        textUnderlineOffset: '2px', padding: 0,
+                      }}
+                    >
+                      {cancellingId === req.id ? 'Cancelling…' : 'Cancel'}
+                    </button>
+                  )}
                 </div>
               </div>
             )

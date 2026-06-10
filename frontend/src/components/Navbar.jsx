@@ -27,8 +27,11 @@ export default function Navbar() {
         <Link to="/">Browse</Link>
         {user?.role === 'lister' && <Link to="/post-listing">List a Space</Link>}
         {user?.role === 'lister' && <Link to="/my-listings">My Listings</Link>}
+        {user?.role === 'lister' && <Link to="/viewing-requests">Requests</Link>}
         {user?.role === 'renter' && <Link to="/my-requests">My Requests</Link>}
+        {user?.role === 'renter' && <Link to="/favourites">Saved</Link>}
         {!user && <Link to="/post-listing">List a Space</Link>}
+        {user && <Link to="/profile">Profile</Link>}
 
         <button className="dm-toggle" onClick={toggle} aria-label="Toggle dark mode">
           <Sun size={13} strokeWidth={1.8} className="dm-icon dm-sun" />
