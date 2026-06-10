@@ -23,7 +23,7 @@ export default function MyRequests() {
       return
     }
     api.get('/view-requests/my')
-      .then(r => setRequests(r.data))
+      .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error('Could not load your requests'))
       .finally(() => setLoading(false))
   }, [user, navigate])
@@ -68,7 +68,7 @@ export default function MyRequests() {
             const photo = listing.photos?.[0] || PLACEHOLDER
 
             return (
-              <div key={req._id} style={{
+              <div key={req.id} style={{{
                 display: 'grid',
                 gridTemplateColumns: '100px 1fr auto',
                 gap: '1.25rem',
@@ -104,7 +104,7 @@ export default function MyRequests() {
                   }}>
                     {STATUS_LABEL[req.status] || 'Pending'}
                   </span>
-                  <Link to={`/listings/${listing._id}`} style={{ fontSize: '0.75rem', color: 'var(--fg)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                  <Link to={`/listings/${listing.id}`} style={{ fontSize: '0.75rem', color: 'var(--fg)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                     View listing
                   </Link>
                   {(!req.status || req.status === 'pending') && (

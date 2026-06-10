@@ -24,7 +24,7 @@ export default function ViewingRequests() {
       return
     }
     api.get('/view-requests/all')
-      .then(r => setRequests(r.data))
+      .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error('Could not load viewing requests'))
       .finally(() => setLoading(false))
   }, [user, navigate])
