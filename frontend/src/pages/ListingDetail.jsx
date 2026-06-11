@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart, Share2, Copy, Check as CheckIcon } from 'lucide-react'
+import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart, Share2, Check as CheckIcon } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -82,6 +82,8 @@ export default function ListingDetail() {
   const [isFavourited, setIsFavourited] = useState(false)
   const [togglingFav, setTogglingFav] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [favFlash, setFavFlash] = useState({ type: '', msg: '' })
+  const [requestFlash, setRequestFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
     api.get(`/listings/${id}`)
@@ -95,7 +97,7 @@ export default function ListingDetail() {
           localStorage.setItem(key, JSON.stringify(updated))
         } catch {}
       })
-      .catch(() => toast.error('Listing not found'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [id])
 
@@ -119,20 +121,20 @@ export default function ListingDetail() {
   }
 
   const handleToggleFavourite = async () => {
-    if (!user) { toast.error('Please log in to save listings'); navigate('/login'); return }
+    if (!user) { navigate('/login'); return }
     setTogglingFav(true)
     try {
       if (isFavourited) {
         await api.delete(`/favourites/${id}`)
         setIsFavourited(false)
-        toast.success('Removed from saved')
+        setFavFlash({ type: 'success', msg: 'Removed from saved' })
       } else {
         await api.post(`/favourites/${id}`)
         setIsFavourited(true)
-        toast.success('Saved to favourites')
+        setFavFlash({ type: 'success', msg: 'Saved to favourites' })
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Could not update saved listings')
+      setFavFlash({ type: 'error', msg: err.response?.data?.message || 'Could not update saved listings' })
     } finally {
       setTogglingFav(false)
     }
@@ -144,15 +146,14 @@ export default function ListingDetail() {
 
   const handleRequestView = async (e) => {
     e.preventDefault()
-    if (!user) { toast.error('Please login to request a viewing'); navigate('/login'); return }
-    if (user.role === 'lister') { toast.error('Switch to a renter account to request viewings'); return }
+    if (!user) { navigate('/login'); return }
+    if (user.role === 'lister') { setRequestFlash({ type: 'error', msg: 'Switch to a renter account to request viewings' }); return }
     setRequesting(true)
     try {
       await api.post(`/view-requests/${id}`, { message })
       setRequested(true)
-      toast.success('Viewing request sent!')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send request')
+      setRequestFlash({ type: 'error', msg: err.response?.data?.message || 'Failed to send request' })
     } finally {
       setRequesting(false)
     }
@@ -314,6 +315,7 @@ export default function ListingDetail() {
             </div>
 
             <div style={{ borderTop: '1px solid var(--border)', margin: '1.25rem 0' }} />
+            <Flash message={favFlash.msg} type={favFlash.type} style={{ marginBottom: '0.75rem' }} />
 
             {isOwner ? (
               <Link to={`/edit-listing/${id}`} className="btn-main" style={{ display: 'block', textAlign: 'center' }}>Edit listing</Link>
@@ -327,6 +329,7 @@ export default function ListingDetail() {
                 <p style={{ fontSize: '0.75rem', color: 'var(--grey)', marginBottom: '0.6rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Or send a viewing request
                 </p>
+                <Flash message={requestFlash.msg} type={requestFlash.type} />
                 <textarea rows={3} placeholder="Hi, I'd like to arrange a viewing…" value={message}
                   onChange={e => setMessage(e.target.value)} className="form-input"
                   style={{ resize: 'vertical', marginBottom: '0.75rem' }} disabled={!listing.isAvailable} />

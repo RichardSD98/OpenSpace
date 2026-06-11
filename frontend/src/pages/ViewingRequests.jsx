@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
@@ -16,16 +16,13 @@ export default function ViewingRequests() {
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
   const [filter, setFilter] = useState('all')
+  const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
-    if (user && user.role !== 'lister') {
-      toast.error('This page is for listers only')
-      navigate('/')
-      return
-    }
+    if (user && user.role !== 'lister') { navigate('/'); return }
     api.get('/view-requests/all')
       .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
-      .catch(() => toast.error('Could not load viewing requests'))
+      .catch(() => setFlash({ type: 'error', msg: 'Could not load viewing requests' }))
       .finally(() => setLoading(false))
   }, [user, navigate])
 
@@ -34,9 +31,9 @@ export default function ViewingRequests() {
     try {
       const { data } = await api.patch(`/view-requests/${id}/status`, { status })
       setRequests(rs => rs.map(r => r.id === id ? { ...r, status: data.status } : r))
-      toast.success(status === 'accepted' ? 'Request accepted — renter notified' : 'Request declined — renter notified')
+      setFlash({ type: 'success', msg: status === 'accepted' ? 'Request accepted — renter notified' : 'Request declined — renter notified' })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Could not update request')
+      setFlash({ type: 'error', msg: err.response?.data?.message || 'Could not update request' })
     } finally {
       setUpdatingId(null)
     }
@@ -58,6 +55,7 @@ export default function ViewingRequests() {
       <p style={{ color: 'var(--grey)', fontSize: '0.85rem', marginBottom: '1.75rem' }}>
         Manage requests from renters who want to view your properties.
       </p>
+      <Flash message={flash.msg} type={flash.type} />
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
         {['all', 'pending', 'accepted', 'declined'].map(f => (

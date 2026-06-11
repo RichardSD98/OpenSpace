@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 import { SkeletonListingRow } from '../components/Skeleton'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=80'
@@ -13,10 +13,10 @@ export default function MyListings() {
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
+  const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
   if (user && user.role !== 'lister') {
-    toast.error('This page is for listers only')
     navigate('/')
     return
   }
@@ -27,13 +27,13 @@ export default function MyListings() {
         const hint = typeof data === 'string' && data.includes('<!DOCTYPE')
           ? ' (received HTML — check VITE_API_URL in Vercel env vars)'
           : ''
-        toast.error('Could not load your listings — unexpected response' + hint)
+        setFlash({ type: 'error', msg: 'Could not load your listings — unexpected response' + hint })
         setListings([])
         return
       }
       setListings(data)
     })
-    .catch((err) => toast.error(err.response?.data?.message || 'Could not load your listings'))
+    .catch((err) => setFlash({ type: 'error', msg: err.response?.data?.message || 'Could not load your listings' }))
     .finally(() => setLoading(false))
 }, [user, navigate])
 
@@ -44,9 +44,9 @@ export default function MyListings() {
         isAvailable: !listing.isAvailable,
       })
       setListings(ls => ls.map(l => l._id === data._id ? data : l))
-      toast.success(data.isAvailable ? 'Marked as available' : 'Marked as unavailable')
+      setFlash({ type: 'success', msg: data.isAvailable ? 'Marked as available' : 'Marked as unavailable' })
     } catch {
-      toast.error('Failed to update availability')
+      setFlash({ type: 'error', msg: 'Failed to update availability' })
     }
   }
 
@@ -56,9 +56,9 @@ export default function MyListings() {
     try {
       await api.delete(`/listings/${id}`)
       setListings(ls => ls.filter(l => l._id !== id))
-      toast.success('Listing deleted')
+      setFlash({ type: 'success', msg: 'Listing deleted' })
     } catch {
-      toast.error('Failed to delete listing')
+      setFlash({ type: 'error', msg: 'Failed to delete listing' })
     } finally {
       setDeletingId(null)
     }
@@ -90,6 +90,7 @@ export default function MyListings() {
         </div>
         <Link to="/post-listing" className="btn-main">+ New listing</Link>
       </div>
+      <Flash message={flash.msg} type={flash.type} />
 
       {listings.length === 0 ? (
         <div className="my-listings-empty">

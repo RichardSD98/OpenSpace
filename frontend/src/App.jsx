@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { DarkModeProvider } from './context/DarkModeContext'
 import Navbar from './components/Navbar'
@@ -41,20 +40,6 @@ export default function App() {
             <Route path="/favourites" element={<ProtectedRoute><Favourites /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
           </Routes>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'var(--bg-muted)',
-                color: 'var(--fg)',
-                border: '1px solid var(--border)',
-                borderRadius: '2px',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '0.85rem',
-              },
-            }}
-          />
         </Router>
       </AuthProvider>
     </DarkModeProvider>

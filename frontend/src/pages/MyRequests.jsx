@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
@@ -15,16 +15,13 @@ export default function MyRequests() {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [cancellingId, setCancellingId] = useState(null)
+  const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
-    if (user && user.role !== 'renter') {
-      toast.error('This page is for renters only')
-      navigate('/')
-      return
-    }
+    if (user && user.role !== 'renter') { navigate('/'); return }
     api.get('/view-requests/my')
       .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
-      .catch(() => toast.error('Could not load your requests'))
+      .catch(() => setFlash({ type: 'error', msg: 'Could not load your requests' }))
       .finally(() => setLoading(false))
     // Mark all responded requests as seen (clears the navbar badge)
     api.patch('/view-requests/mark-seen').catch(() => {})
@@ -36,9 +33,9 @@ export default function MyRequests() {
     try {
       await api.delete(`/view-requests/${id}`)
       setRequests(rs => rs.filter(r => r.id !== id))
-      toast.success('Request cancelled')
+      setFlash({ type: 'success', msg: 'Request cancelled' })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Could not cancel request')
+      setFlash({ type: 'error', msg: err.response?.data?.message || 'Could not cancel request' })
     } finally {
       setCancellingId(null)
     }
@@ -54,6 +51,7 @@ export default function MyRequests() {
       </p>
 
       {loading && <p style={{ color: 'var(--grey)' }}>Loading…</p>}
+      <Flash message={flash.msg} type={flash.type} />
 
       {!loading && requests.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--grey)' }}>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
@@ -13,12 +13,13 @@ export default function Favourites() {
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [removingId, setRemovingId] = useState(null)
+  const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
     api.get('/favourites')
       .then(r => setListings(r.data))
-      .catch(() => toast.error('Could not load saved listings'))
+      .catch(() => setFlash({ type: 'error', msg: 'Could not load saved listings' }))
       .finally(() => setLoading(false))
   }, [user, navigate])
 
@@ -27,9 +28,9 @@ export default function Favourites() {
     try {
       await api.delete(`/favourites/${listingId}`)
       setListings(ls => ls.filter(l => l._id !== listingId))
-      toast.success('Removed from saved')
+      setFlash({ type: 'success', msg: 'Removed from saved' })
     } catch {
-      toast.error('Could not remove listing')
+      setFlash({ type: 'error', msg: 'Could not remove listing' })
     } finally {
       setRemovingId(null)
     }
@@ -45,6 +46,7 @@ export default function Favourites() {
       </p>
 
       {loading && <p style={{ color: 'var(--grey)' }}>Loading…</p>}
+      <Flash message={flash.msg} type={flash.type} />
 
       {!loading && listings.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--grey)' }}>

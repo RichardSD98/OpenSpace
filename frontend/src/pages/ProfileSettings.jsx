@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 import PhoneInput from '../components/PhoneInput'
 
 export default function ProfileSettings() {
@@ -13,17 +13,20 @@ export default function ProfileSettings() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState('')
+  const [flash, setFlash] = useState({ type: '', msg: '' })
+  const [deleteFlash, setDeleteFlash] = useState({ type: '', msg: '' })
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
+    setFlash({ type: '', msg: '' })
     try {
       await api.put('/auth/profile', { name: form.name, phone: form.phone })
-      toast.success('Profile updated')
+      setFlash({ type: 'success', msg: 'Profile updated' })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Could not update profile')
+      setFlash({ type: 'error', msg: err.response?.data?.message || 'Could not update profile' })
     } finally {
       setSaving(false)
     }
@@ -31,17 +34,16 @@ export default function ProfileSettings() {
 
   const handleDeleteAccount = async () => {
     if (confirmDelete !== user?.email) {
-      toast.error('Email confirmation does not match')
+      setDeleteFlash({ type: 'error', msg: 'Email confirmation does not match' })
       return
     }
     setDeleting(true)
     try {
       await api.delete('/auth/account')
       logout()
-      toast.success('Account deleted')
       navigate('/')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Could not delete account')
+      setDeleteFlash({ type: 'error', msg: err.response?.data?.message || 'Could not delete account' })
       setDeleting(false)
     }
   }
@@ -51,6 +53,7 @@ export default function ProfileSettings() {
       <div className="form-wrap">
         <h1 className="form-heading">Profile settings</h1>
         <p className="form-sub">Update your display name and phone number.</p>
+        <Flash message={flash.msg} type={flash.type} />
 
         <form onSubmit={handleSave}>
           <div className="form-field">
@@ -128,6 +131,7 @@ export default function ProfileSettings() {
           >
             {deleting ? 'Deleting account…' : 'Permanently delete my account'}
           </button>
+          <Flash message={deleteFlash.msg} type={deleteFlash.type} style={{ marginTop: '0.75rem', marginBottom: 0 }} />
         </div>
       </div>
     </div>

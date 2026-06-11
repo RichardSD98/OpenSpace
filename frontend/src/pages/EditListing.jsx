@@ -4,7 +4,7 @@ import { ImagePlus, X, Save } from 'lucide-react'
 import api from '../api/axios'
 import { supabase } from '../api/supabase'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 import PhoneInput from '../components/PhoneInput'
 import { NEIGHBORHOODS } from '../lib/neighborhoods'
 import SelectDropdown from '../components/SelectDropdown'
@@ -24,11 +24,11 @@ export default function EditListing() {
   const [newPhotos, setNewPhotos] = useState([])
   const [newPreviews, setNewPreviews] = useState([])
   const [submitting, setSubmitting] = useState(false)
+  const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
     api.get(`/listings/${id}`).then(({ data }) => {
       if (data.landlord?._id !== user?._id) {
-        toast.error('Not authorized')
         navigate('/my-listings')
         return
       }
@@ -41,7 +41,6 @@ export default function EditListing() {
         availableFrom: data.availableFrom?.split('T')[0] || '',
       })
     }).catch(() => {
-      toast.error('Listing not found')
       navigate('/my-listings')
     })
   }, [id, user, navigate])
@@ -96,10 +95,10 @@ export default function EditListing() {
         photos: [...(form.photos || []), ...uploadedUrls],
       }
       await api.put(`/listings/${id}`, payload)
-      toast.success('Listing updated!')
       navigate(`/listings/${id}`)
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Update failed')
+      setFlash({ type: 'error', msg: err.response?.data?.message || err.message || 'Update failed' })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setSubmitting(false)
     }
@@ -116,6 +115,7 @@ export default function EditListing() {
   return (
     <div className="form-page" style={{ alignItems: 'flex-start', paddingTop: '3rem' }}>
       <div className="form-wrap-wide">
+        <Flash message={flash.msg} type={flash.type} />
         <button onClick={() => navigate(-1)} className="back-link" style={{ marginBottom: '1.5rem' }}>
           ← Back
         </button>

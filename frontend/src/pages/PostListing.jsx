@@ -4,7 +4,7 @@ import { Upload, X, ImagePlus } from 'lucide-react'
 import api from '../api/axios'
 import { supabase } from '../api/supabase'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
+import Flash from '../components/Flash'
 import PhoneInput from '../components/PhoneInput'
 import { NEIGHBORHOODS } from '../lib/neighborhoods'
 import SelectDropdown from '../components/SelectDropdown'
@@ -31,13 +31,11 @@ export default function PostListing() {
   const [photos, setPhotos] = useState([])
   const [previews, setPreviews] = useState([])
   const [submitting, setSubmitting] = useState(false)
+  const [flash, setFlash] = useState({ type: '', msg: '' })
 
   // Role guard — only listers can post
   useEffect(() => {
-    if (user && user.role !== 'lister') {
-      toast.error('Only listers can post listings')
-      navigate('/')
-    }
+    if (user && user.role !== 'lister') navigate('/')
   }, [user, navigate])
 
   // Pre-fill contact fields from logged-in user's profile
@@ -56,7 +54,7 @@ export default function PostListing() {
 
   const handlePhotoChange = (e) => {
     const files = Array.from(e.target.files)
-    if (photos.length + files.length > 6) { toast.error('Maximum 6 photos'); return }
+    if (photos.length + files.length > 6) { setFlash({ type: 'error', msg: 'Maximum 6 photos allowed' }); return }
     setPhotos(p => [...p, ...files])
     setPreviews(p => [...p, ...files.map(f => URL.createObjectURL(f))])
   }
@@ -74,7 +72,7 @@ export default function PostListing() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.neighborhood) { toast.error('Please select a neighbourhood'); return }
+    if (!form.neighborhood) { setFlash({ type: 'error', msg: 'Please select a neighbourhood' }); return }
     setSubmitting(true)
     try {
       // Upload photos directly to Supabase Storage
@@ -105,10 +103,10 @@ export default function PostListing() {
         photos: photoUrls,
       }
       const { data } = await api.post('/listings', payload)
-      toast.success('Listing posted!')
       navigate(`/listings/${data._id}`)
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Failed to post listing')
+      setFlash({ type: 'error', msg: err.response?.data?.message || err.message || 'Failed to post listing' })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setSubmitting(false)
     }
@@ -118,6 +116,7 @@ export default function PostListing() {
     <div className="form-page" style={{ alignItems: 'flex-start', paddingTop: '3rem' }}>
       <div className="form-wrap-wide">
         <h1 className="form-heading">Post a listing</h1>
+        <Flash message={flash.msg} type={flash.type} />
         <p className="form-sub">Fill in the details to list your property on OpenSpace.</p>
 
         <form onSubmit={handleSubmit}>
