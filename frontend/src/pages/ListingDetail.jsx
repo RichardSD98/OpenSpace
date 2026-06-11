@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart, Share2, Check as CheckIcon } from 'lucide-react'
+import Flash from '../components/Flash'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import toast from 'react-hot-toast'
 import { SkeletonDetail } from '../components/Skeleton'
 import MapEmbed from '../components/MapEmbed'
 
