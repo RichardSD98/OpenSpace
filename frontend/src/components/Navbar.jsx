@@ -65,7 +65,7 @@ export default function Navbar() {
         Please verify your email address — check your inbox for a link from OpenSpace.
       </div>
     )}
-    <nav>
+    <nav className="site-nav">
       <a className="logo" href="/">OpenSpace</a>
 
       {/* Desktop nav */}

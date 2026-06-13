@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
 import { SkeletonCard } from '../components/Skeleton'
+import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
 
 function useRecentlyViewed() {
@@ -271,44 +272,7 @@ export default function Home() {
       </div>
 
       {/* ── Footer ── */}
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <a className="logo" href="/">OpenSpace</a>
-            <p>A simple platform connecting landlords and renters across Windhoek, Namibia. Browse free. List free.</p>
-          </div>
-          <div>
-            <h4>Browse</h4>
-            <ul>
-              <li><Link to="/">All listings</Link></li>
-              <li><a href="/">Apartments</a></li>
-              <li><a href="/">Bachelor Flats</a></li>
-              <li><a href="/">Single Rooms</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Company</h4>
-            <ul>
-              <li><Link to="/register">Sign up</Link></li>
-              <li><Link to="/login">Sign in</Link></li>
-              <li><Link to="/post-listing">Post a listing</Link></li>
-              <li><a href="/">About OpenSpace</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Legal</h4>
-            <ul>
-              <li><a href="/">Terms of service</a></li>
-              <li><a href="/">Privacy policy</a></li>
-              <li><a href="/">Cookie policy</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} OpenSpace · Windhoek, Namibia</p>
-          <p>Built for Windhoek</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

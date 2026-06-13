@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import ResponsiveImage from './ui/ResponsiveImage'
+import { SIZES_CARD } from './ui/imageUtils'
 
 export default function ListingCard({ listing, index = 0 }) {
   const navigate = useNavigate()
@@ -12,10 +14,13 @@ export default function ListingCard({ listing, index = 0 }) {
     >
       <div className={`listing-img ${imgClass}`}>
         {listing.photos && listing.photos.length > 0 ? (
-          <img
+          <ResponsiveImage
             src={listing.photos[0]}
             alt={listing.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            aspectRatio="auto"
+            sizes={SIZES_CARD}
+            wrapperClassName="h-full"
+            className="h-full"
           />
         ) : (
           <div className="img-inner"><div className="img-shape"></div></div>
