@@ -2193,3 +2193,356 @@ footer ul li a:hover { color: var(--fg); }
   border-radius: 2px;
 }
 .hidden { display: none !important; }
+
+/* Responsive polish pass */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+.hero,
+.trust-line,
+.search-wrap,
+.sec-head,
+.listings-wrap,
+.stats-wrap,
+.form-page,
+.auth-wrap,
+.page-wrap,
+.my-listings-page,
+.detail-page,
+.detail-wrap,
+footer,
+.site-footer {
+  padding-left: max(16px, 5%);
+  padding-right: max(16px, 5%);
+}
+
+.detail-grid {
+  min-width: 0;
+}
+
+.detail-main,
+.detail-sidebar,
+.detail-price-card,
+.detail-gallery,
+.detail-title-block,
+.detail-section {
+  min-width: 0;
+}
+
+.detail-badges {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.detail-badges .v-badge,
+.detail-badges .listing-type-pill {
+  position: static;
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+.detail-title {
+  font-size: clamp(1.65rem, 6vw, 2.5rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+  margin-bottom: 0.65rem;
+}
+
+.detail-location {
+  display: flex;
+  align-items: flex-start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.detail-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+.detail-stat {
+  min-width: 0;
+  padding: 1rem;
+  border-right: 1px solid var(--border);
+}
+
+.detail-stat:nth-child(3n) {
+  border-right: none;
+}
+
+.detail-stat,
+.detail-stat-col {
+  min-width: 0;
+}
+
+.detail-stat-val {
+  display: block;
+  font-size: 1.15rem;
+  color: var(--fg);
+  font-weight: 400;
+}
+
+.detail-stat-val,
+.detail-stat-value {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.detail-thumbs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 72px;
+  gap: 0.6rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.detail-thumb {
+  width: 72px;
+  height: 72px;
+  scroll-snap-align: start;
+  box-sizing: border-box;
+}
+
+.detail-thumb.active {
+  border-color: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--bg), 0 0 0 1px var(--fg);
+}
+
+.detail-price-card > div:first-child {
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-price-card > div:first-child > div:first-child {
+  min-width: 0;
+  flex: 1 1 170px;
+}
+
+.detail-price-card > div:first-child > div:last-child {
+  flex: 0 0 auto;
+}
+
+.detail-price-card button[title] {
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.detail-price {
+  font-size: clamp(1.65rem, 8vw, 2rem);
+  overflow-wrap: anywhere;
+}
+
+.recently-viewed-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.listings-wrap-recent {
+  overflow: hidden;
+}
+
+.listings-wrap-recent .recently-viewed-list {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.recently-viewed-list .listing {
+  scroll-snap-align: start;
+}
+
+@media (max-width: 960px) {
+  .detail-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-nav,
+  .nav-drawer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .hero,
+  .trust-line,
+  .search-wrap,
+  .sec-head,
+  .listings-wrap,
+  .stats-wrap,
+  .form-page,
+  .auth-wrap,
+  .page-wrap,
+  .my-listings-page,
+  .detail-page,
+  .detail-wrap,
+  footer,
+  .site-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .hero {
+    padding-top: 3rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 11vw, 2.75rem);
+    overflow-wrap: anywhere;
+  }
+
+  .detail-page,
+  .detail-wrap {
+    padding-top: 1.25rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .detail-grid {
+    gap: 1.75rem;
+  }
+
+  .detail-gallery {
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-main-photo,
+  .detail-main-placeholder {
+    height: clamp(220px, 62vw, 280px);
+  }
+
+  .detail-thumbs {
+    grid-auto-columns: 64px;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    margin-inline: 0;
+  }
+
+  .detail-thumb {
+    width: 64px;
+    height: 64px;
+  }
+
+  .detail-title-block,
+  .detail-section,
+  .detail-stats {
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail-stat {
+    padding: 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-stat:nth-child(2n) {
+    border-right: none;
+  }
+
+  .detail-stat:nth-child(3n) {
+    border-right: 1px solid var(--border);
+  }
+
+  .detail-stat:nth-last-child(-n+3) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-stat:last-child {
+    grid-column: 1 / -1;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .detail-stat-val {
+    font-size: 0.98rem !important;
+  }
+
+  .detail-price-card {
+    padding: 0;
+  }
+
+  .detail-price-card > div:first-child {
+    align-items: center !important;
+  }
+
+  .detail-price-card > div:first-child > div:last-child {
+    gap: 0.6rem !important;
+  }
+
+  .detail-contact .btn-main,
+  .detail-contact .btn-ghost {
+    min-height: 44px;
+  }
+
+  .recently-viewed-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc(100vw - 32px);
+    grid-template-columns: none !important;
+    gap: 0;
+  }
+
+  .listings-wrap-recent .listing {
+    border-right: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .detail-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-stat,
+  .detail-stat:nth-child(2n),
+  .detail-stat:nth-child(3n),
+  .detail-stat:last-child {
+    grid-column: auto;
+    border-right: none;
+  }
+
+  .detail-stat:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-stat:last-child {
+    border-bottom: none;
+  }
+
+  .detail-price-card > div:first-child > div:first-child,
+  .detail-price-card > div:first-child > div:last-child {
+    flex-basis: 100%;
+  }
+
+  .detail-price-card > div:first-child > div:last-child {
+    justify-content: flex-start !important;
+  }
+}

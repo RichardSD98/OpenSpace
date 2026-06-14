@@ -241,8 +241,8 @@ export default function Home() {
           <div className="sec-head">
             <h2>Recently viewed</h2>
           </div>
-          <div className="listings-wrap">
-            <div className="listings" style={{ gridTemplateColumns: `repeat(${Math.min(recent.length, 4)}, 1fr)` }}>
+          <div className="listings-wrap listings-wrap-recent">
+            <div className="listings recently-viewed-list">
               {recent.map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
             </div>
           </div>
