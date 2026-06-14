@@ -56,7 +56,10 @@ router.get('/:id', async (req, res) => {
       .eq('id', req.params.id)
       .single();
     if (error || !data) return res.status(404).json({ message: 'Listing not found' });
-    res.json(normalise(data));
+
+    const user = await getUserFromAuthHeader(req.headers.authorization);
+    const listing = normalise(data);
+    res.json(user ? listing : stripLandlordContact(listing));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -136,6 +139,28 @@ function normalise(row) {
     landlord: row.landlord
       ? { _id: row.landlord.id, ...row.landlord }
       : { _id: row.landlord_id },
+  };
+}
+
+async function getUserFromAuthHeader(authHeader) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) return null;
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+function stripLandlordContact(listing) {
+  const { contactName, contactPhone, contactEmail, landlord, ...publicListing } = listing;
+
+  return {
+    ...publicListing,
+    landlord: landlord?._id ? { _id: landlord._id } : undefined,
   };
 }
 

@@ -170,6 +170,7 @@ export default function ListingDetail() {
 
   const photos = Array.isArray(listing.photos) && listing.photos.length ? listing.photos : [PLACEHOLDER]
   const isOwner = user?._id === listing.landlord?._id
+  const hasContactDetails = Boolean(listing.contactName || listing.contactPhone || listing.contactEmail)
 
   return (
     <div className="detail-page">
@@ -291,28 +292,74 @@ export default function ListingDetail() {
               </div>
             </div>
 
-            <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
-              <h3 className="detail-contact-title">Contact landlord</h3>
-              <p className="detail-contact-name">{listing.contactName}</p>
-              <a href={`tel:${listing.contactPhone}`} className="detail-contact-link">
-                <Phone size={14} strokeWidth={1.8} style={{ marginRight: '0.4rem', flexShrink: 0 }} />
-                {listing.contactPhone}
-              </a>
-              {listing.contactEmail && (
-                <a href={`mailto:${listing.contactEmail}`} className="detail-contact-link">
-                  <Mail size={14} strokeWidth={1.8} style={{ marginRight: '0.4rem', flexShrink: 0 }} />
-                  {listing.contactEmail}
-                </a>
-              )}
-              {listing.contactPhone && (
-                <a href={`https://wa.me/${listing.contactPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in your listing: ${listing.title}`)}`}
-                  className="btn-ghost" target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.75rem', fontSize: '0.82rem' }}>
-                  <MessageCircle size={14} strokeWidth={1.8} />
-                  Message on WhatsApp
-                </a>
-              )}
-            </div>
+            {user && hasContactDetails ? (
+              <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
+                <h3 className="detail-contact-title">Contact landlord</h3>
+                {listing.contactName && <p className="detail-contact-name">{listing.contactName}</p>}
+                {listing.contactPhone && (
+                  <a href={`tel:${listing.contactPhone}`} className="detail-contact-link">
+                    <Phone size={14} strokeWidth={1.8} style={{ marginRight: '0.4rem', flexShrink: 0 }} />
+                    {listing.contactPhone}
+                  </a>
+                )}
+                {listing.contactEmail && (
+                  <a href={`mailto:${listing.contactEmail}`} className="detail-contact-link">
+                    <Mail size={14} strokeWidth={1.8} style={{ marginRight: '0.4rem', flexShrink: 0 }} />
+                    {listing.contactEmail}
+                  </a>
+                )}
+                {listing.contactPhone && (
+                  <a href={`https://wa.me/${listing.contactPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in your listing: ${listing.title}`)}`}
+                    className="btn-ghost" target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.75rem', fontSize: '0.82rem' }}>
+                    <MessageCircle size={14} strokeWidth={1.8} />
+                    Message on WhatsApp
+                  </a>
+                )}
+              </div>
+            ) : !user ? (
+              <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
+                <h3 className="detail-contact-title">Contact landlord</h3>
+                <div
+                  aria-hidden="true"
+                  style={{
+                    filter: 'blur(5px)',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                    opacity: 0.7,
+                    margin: '0.55rem 0 0.85rem',
+                  }}
+                >
+                  <p className="detail-contact-name">Landlord Name</p>
+                  <div className="detail-contact-link">
+                    <Phone size={14} strokeWidth={1.8} style={{ marginRight: '0.4rem', flexShrink: 0 }} />
+                    +264 81 000 0000
+                  </div>
+                  <div className="detail-contact-link">
+                    <Mail size={14} strokeWidth={1.8} style={{ marginRight: '0.4rem', flexShrink: 0 }} />
+                    landlord@example.com
+                  </div>
+                  <div
+                    className="btn-ghost"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '0.75rem', fontSize: '0.82rem' }}
+                  >
+                    <MessageCircle size={14} strokeWidth={1.8} />
+                    Message on WhatsApp
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--grey)', lineHeight: 1.6, margin: '0.35rem 0 0.9rem' }}>
+                  Sign in to view landlord contact details and send inquiries.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                  <Link to="/login" className="btn-main" style={{ textAlign: 'center', padding: '0.75rem 0.5rem' }}>
+                    Sign In
+                  </Link>
+                  <Link to="/register" className="btn-ghost" style={{ textAlign: 'center', padding: '0.75rem 0.5rem' }}>
+                    Create Account
+                  </Link>
+                </div>
+              </div>
+            ) : null}
 
             <div style={{ borderTop: '1px solid var(--border)', margin: '1.25rem 0' }} />
             <Flash message={favFlash.msg} type={favFlash.type} style={{ marginBottom: '0.75rem' }} />
@@ -338,14 +385,6 @@ export default function ListingDetail() {
                   {!listing.isAvailable ? 'Not available' : requesting ? 'Sending…' : 'Send viewing request'}
                 </button>
               </form>
-            ) : !user ? (
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: '0.8rem', color: 'var(--grey)', marginBottom: '0.75rem', lineHeight: 1.6 }}>
-                  <Link to="/register" style={{ color: 'var(--fg)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Sign up</Link>{' '}or{' '}
-                  <Link to="/login" style={{ color: 'var(--fg)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>log in</Link>{' '}
-                  to send a viewing request directly to this landlord.
-                </p>
-              </div>
             ) : null}
           </div>
         </aside>
