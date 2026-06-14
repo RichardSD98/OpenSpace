@@ -6,17 +6,43 @@ const { protect, requireLister } = require('../middleware/auth');
 // GET /api/listings
 router.get('/', async (req, res) => {
   try {
-    const { unitType, neighborhood, minRent, maxRent, available, page = 1, limit = 12 } = req.query;
+    const {
+      unitType,
+      neighborhood,
+      minRent,
+      maxRent,
+      available,
+      availableNow,
+      amenity,
+      sort = 'newest',
+      page = 1,
+      limit = 12,
+    } = req.query;
     let query = supabase
       .from('listings')
-      .select('*, landlord:profiles(id, name, phone)', { count: 'exact' })
-      .order('created_at', { ascending: false });
+      .select('*, landlord:profiles(id, name, phone)', { count: 'exact' });
 
     if (unitType) query = query.eq('unit_type', unitType);
     if (neighborhood) query = query.ilike('neighborhood', `%${neighborhood}%`);
     if (minRent) query = query.gte('rent', Number(minRent));
     if (maxRent) query = query.lte('rent', Number(maxRent));
     if (available !== undefined) query = query.eq('is_available', available === 'true');
+    if (availableNow === 'true') query = query.lte('available_from', new Date().toISOString().slice(0, 10));
+    if (amenity) query = query.contains('amenities', [amenity]);
+
+    switch (sort) {
+      case 'rent-asc':
+        query = query.order('rent', { ascending: true }).order('created_at', { ascending: false });
+        break;
+      case 'rent-desc':
+        query = query.order('rent', { ascending: false }).order('created_at', { ascending: false });
+        break;
+      case 'available-asc':
+        query = query.order('available_from', { ascending: true }).order('created_at', { ascending: false });
+        break;
+      default:
+        query = query.order('created_at', { ascending: false });
+    }
 
     const from = (Number(page) - 1) * Number(limit);
     const to = from + Number(limit) - 1;

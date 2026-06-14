@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
+import { buildListingParams } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
@@ -19,11 +20,10 @@ function useRecentlyViewed() {
 
 const UNIT_TYPES = [
   { label: 'Any type', value: '' },
-  { label: 'Apartment', value: 'Apartment' },
-  { label: 'Bachelor Flat', value: 'Bachelor Flat' },
-  { label: 'Single Room', value: 'Single Room' },
-  { label: 'House', value: 'House' },
-  { label: 'Townhouse', value: 'Townhouse' },
+  { label: 'Apartment', value: 'apartment' },
+  { label: 'Flat', value: 'flat' },
+  { label: 'Single Room', value: 'single room' },
+  { label: 'Studio', value: 'studio' },
 ]
 
 const BUDGETS = [
@@ -88,15 +88,17 @@ export default function Home() {
   const listingsRef = useRef(null)
   const pageRef = useReveal()
 
-  const fetchListings = useCallback(async (nbhood, ut, bgt) => {
+  const fetchListings = useCallback(async (nbhood, ut, bgt, chip) => {
     setLoading(true)
     setError('')
     try {
-      const params = new URLSearchParams({ limit: 6 })
-      if (ut?.value) params.append('unitType', ut.value)
-      if (bgt?.max) params.append('maxRent', bgt.max)
-      if (bgt?.min) params.append('minRent', bgt.min)
-      if (nbhood.trim()) params.append('neighborhood', nbhood.trim())
+      const params = buildListingParams({
+        neighborhood: nbhood,
+        unitType: ut,
+        budget: bgt,
+        activeChip: chip,
+        limit: 6,
+      })
       const { data } = await api.get(`/listings?${params}`)
       setListings(data.listings || [])
       setTotal(data.total || 0)
@@ -107,7 +109,7 @@ export default function Home() {
     }
   }, [])
 
-  useEffect(() => { fetchListings(neighborhood, unitType, budget) }, [fetchListings])
+  useEffect(() => { fetchListings(neighborhood, unitType, budget, activeChip) }, [fetchListings, activeChip])
 
   useEffect(() => {
     if (!statsRef.current) return
@@ -131,8 +133,15 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    fetchListings(neighborhood, unitType, budget)
+    fetchListings(neighborhood, unitType, budget, activeChip)
   }
+
+  const viewAllParams = buildListingParams({
+    neighborhood,
+    unitType,
+    budget,
+    activeChip,
+  })
 
   return (
     <div ref={pageRef}>
@@ -213,7 +222,7 @@ export default function Home() {
       <div ref={listingsRef}>
         <div className="sec-head">
           <h2>Latest listings</h2>
-          <Link to="/">View all →</Link>
+          <Link to={`/listings${viewAllParams.toString() ? `?${viewAllParams}` : ''}`}>View all →</Link>
         </div>
         <div className="listings-wrap">
           {error && (

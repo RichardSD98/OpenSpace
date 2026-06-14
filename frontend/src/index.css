@@ -376,6 +376,9 @@ html.dark .dm-moon { opacity: 1; }
   border-radius: 2px;
   overflow: visible;
 }
+.search-row-wide {
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+}
 .s-field {
   position: relative;
   border-right: 1px solid var(--border);
@@ -550,6 +553,50 @@ html.dark .dm-moon { opacity: 1; }
   max-width: 1200px;
   margin: 0 auto;
 }
+.listings-page-hero {
+  padding: 4rem 5% 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.listings-page-hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.12;
+  color: var(--fg);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+.listings-summary {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 5% 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.listings-summary h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.listings-summary p {
+  font-size: 0.82rem;
+  color: var(--grey);
+  font-weight: 300;
+}
+.listings-empty {
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--grey);
+  font-size: 0.9rem;
+  font-weight: 300;
+  border-top: 1px solid var(--border);
+}
 .listings {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -659,6 +706,44 @@ html.dark .dm-moon { opacity: 1; }
   font-size: 0.75rem;
   color: var(--grey);
   font-weight: 300;
+}
+.pagination {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.pagination button,
+.pagination span {
+  min-width: 38px;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--grey);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.8rem;
+}
+.pagination button {
+  cursor: pointer;
+}
+.pagination button:hover:not(:disabled),
+.pagination button.active {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ─── Safety Section ────────────────────────────────────────────────── */
@@ -1619,6 +1704,19 @@ footer ul li a:hover { color: var(--fg); }
   /* listings */
   .listings { grid-template-columns: 1fr; }
   .listing { border-right: none; padding-left: 0 !important; }
+  .listings-page-hero {
+    padding-top: 2.5rem;
+  }
+  .listings-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .listings-summary .filter {
+    min-height: 44px;
+  }
+  .pagination {
+    justify-content: flex-start;
+  }
 
   /* hero */
   .hero { padding: 3rem 5% 2.5rem; }
@@ -2216,10 +2314,13 @@ svg {
 }
 
 .hero,
+.listings-page-hero,
 .trust-line,
 .search-wrap,
 .sec-head,
 .listings-wrap,
+.listings-summary,
+.pagination,
 .stats-wrap,
 .form-page,
 .auth-wrap,
@@ -2524,10 +2625,13 @@ textarea {
   }
 
   .hero,
+  .listings-page-hero,
   .trust-line,
   .search-wrap,
   .sec-head,
   .listings-wrap,
+  .listings-summary,
+  .pagination,
   .stats-wrap,
   .form-page,
   .auth-wrap,

@@ -4,6 +4,7 @@ import { DarkModeProvider } from './context/DarkModeContext'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
+import Listings from './pages/Listings'
 import ListingDetail from './pages/ListingDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -28,6 +29,7 @@ function AppShell() {
       {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/listings" element={<Listings />} />
         <Route path="/responsive-demo" element={<ResponsiveShowcase />} />
         <Route path="/listings/:id" element={<ListingDetail />} />
         <Route path="/login" element={<Login />} />
