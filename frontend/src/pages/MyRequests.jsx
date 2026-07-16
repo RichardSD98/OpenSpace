@@ -18,7 +18,6 @@ export default function MyRequests() {
   const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
-    if (user && user.role !== 'renter') { navigate('/'); return }
     api.get('/view-requests/my')
       .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
       .catch(() => setFlash({ type: 'error', msg: 'Could not load your requests' }))

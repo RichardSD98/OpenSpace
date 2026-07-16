@@ -33,4 +33,9 @@ const requireLister = (req, res, next) => {
   res.status(403).json({ message: 'Only listers can perform this action' });
 };
 
-module.exports = { protect, requireLister };
+const requireRenter = (req, res, next) => {
+  if (req.user && req.user.role === 'renter') return next();
+  res.status(403).json({ message: 'Only renters can perform this action' });
+};
+
+module.exports = { protect, requireLister, requireRenter };

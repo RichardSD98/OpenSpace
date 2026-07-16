@@ -83,9 +83,11 @@ router.get('/:id', async (req, res) => {
       .single();
     if (error || !data) return res.status(404).json({ message: 'Listing not found' });
 
-    const user = await getUserFromAuthHeader(req.headers.authorization);
+    const requester = await getUserFromAuthHeader(req.headers.authorization);
     const listing = normalise(data);
-    res.json(user ? listing : stripLandlordContact(listing));
+    const isOwner = requester && requester.id === data.landlord_id;
+    const canViewContact = isOwner || requester?.role === 'renter';
+    res.json(canViewContact ? listing : stripLandlordContact(listing));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -104,7 +106,7 @@ router.post('/', protect, requireLister, async (req, res) => {
 });
 
 // PUT /api/listings/:id
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', protect, requireLister, async (req, res) => {
   try {
     const { data: existing, error: fetchErr } = await supabase
       .from('listings').select('landlord_id').eq('id', req.params.id).single();
@@ -124,7 +126,7 @@ router.put('/:id', protect, async (req, res) => {
 });
 
 // DELETE /api/listings/:id
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', protect, requireLister, async (req, res) => {
   try {
     const { data: existing, error: fetchErr } = await supabase
       .from('listings').select('landlord_id').eq('id', req.params.id).single();
@@ -175,7 +177,14 @@ async function getUserFromAuthHeader(authHeader) {
     const token = authHeader.split(' ')[1];
     const { data: { user }, error } = await supabase.auth.getUser(token);
     if (error || !user) return null;
-    return user;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    return { ...user, role: profile?.role || user.user_metadata?.role || 'renter' };
   } catch {
     return null;
   }

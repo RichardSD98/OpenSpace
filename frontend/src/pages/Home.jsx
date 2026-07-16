@@ -6,6 +6,7 @@ import { buildListingParams } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
+import { useAuth } from '../context/AuthContext'
 
 function useRecentlyViewed() {
   const [recent, setRecent] = useState([])
@@ -74,6 +75,7 @@ function CustomSelect({ label, value, options, onChange }) {
 
 export default function Home() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [listings, setListings] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -160,9 +162,11 @@ export default function Home() {
           >
             Browse listings
           </button>
-          <button className="btn-ghost" onClick={() => navigate('/post-listing')}>
-            List a property
-          </button>
+          {(!user || user.role === 'lister') && (
+            <button className="btn-ghost" onClick={() => navigate('/post-listing')}>
+              List a property
+            </button>
+          )}
         </div>
       </section>
 

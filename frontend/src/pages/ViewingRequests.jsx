@@ -19,7 +19,6 @@ export default function ViewingRequests() {
   const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
-    if (user && user.role !== 'lister') { navigate('/'); return }
     api.get('/view-requests/all')
       .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
       .catch(() => setFlash({ type: 'error', msg: 'Could not load viewing requests' }))

@@ -16,10 +16,6 @@ export default function MyListings() {
   const [flash, setFlash] = useState({ type: '', msg: '' })
 
   useEffect(() => {
-  if (user && user.role !== 'lister') {
-    navigate('/')
-    return
-  }
   api.get('/listings/my/listings')
     .then(({ data }) => {
       if (!Array.isArray(data)) {

@@ -36,12 +36,12 @@ function AppShell() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/post-listing" element={<ProtectedRoute><PostListing /></ProtectedRoute>} />
-        <Route path="/edit-listing/:id" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
-        <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
-        <Route path="/my-requests" element={<ProtectedRoute><MyRequests /></ProtectedRoute>} />
+        <Route path="/post-listing" element={<ProtectedRoute allowedRoles={['lister']}><PostListing /></ProtectedRoute>} />
+        <Route path="/edit-listing/:id" element={<ProtectedRoute allowedRoles={['lister']}><EditListing /></ProtectedRoute>} />
+        <Route path="/my-listings" element={<ProtectedRoute allowedRoles={['lister']}><MyListings /></ProtectedRoute>} />
+        <Route path="/my-requests" element={<ProtectedRoute allowedRoles={['renter']}><MyRequests /></ProtectedRoute>} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/viewing-requests" element={<ProtectedRoute><ViewingRequests /></ProtectedRoute>} />
+        <Route path="/viewing-requests" element={<ProtectedRoute allowedRoles={['lister']}><ViewingRequests /></ProtectedRoute>} />
         <Route path="/favourites" element={<ProtectedRoute><Favourites /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
       </Routes>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
-const { protect } = require('../middleware/auth');
+const { protect, requireRenter } = require('../middleware/auth');
 const { sendViewRequestStatusEmail } = require('../services/email');
 
 // GET /api/view-requests/all — landlord sees all requests across all their listings
@@ -96,7 +96,7 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 // POST /api/view-requests/:listingId
-router.post('/:listingId', protect, async (req, res) => {
+router.post('/:listingId', protect, requireRenter, async (req, res) => {
   try {
     const { data: listing, error: listErr } = await supabase
       .from('listings').select('id').eq('id', req.params.listingId).single();

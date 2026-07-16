@@ -171,6 +171,7 @@ export default function ListingDetail() {
   const photos = Array.isArray(listing.photos) && listing.photos.length ? listing.photos : [PLACEHOLDER]
   const isOwner = user?._id === listing.landlord?._id
   const hasContactDetails = Boolean(listing.contactName || listing.contactPhone || listing.contactEmail)
+  const canViewContact = isOwner || user?.role === 'renter'
 
   return (
     <div className="detail-page">
@@ -292,7 +293,7 @@ export default function ListingDetail() {
               </div>
             </div>
 
-            {user && hasContactDetails ? (
+            {canViewContact && hasContactDetails ? (
               <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
                 <h3 className="detail-contact-title">Contact landlord</h3>
                 {listing.contactName && <p className="detail-contact-name">{listing.contactName}</p>}
@@ -359,7 +360,14 @@ export default function ListingDetail() {
                   </Link>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="detail-contact" style={{ marginTop: '1.25rem' }}>
+                <h3 className="detail-contact-title">Contact landlord</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--grey)', lineHeight: 1.6, margin: '0.35rem 0 0' }}>
+                  Contact details are only visible to renters.
+                </p>
+              </div>
+            )}
 
             <div style={{ borderTop: '1px solid var(--border)', margin: '1.25rem 0' }} />
             <Flash message={favFlash.msg} type={favFlash.type} style={{ marginBottom: '0.75rem' }} />

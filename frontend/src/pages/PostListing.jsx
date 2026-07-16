@@ -33,11 +33,6 @@ export default function PostListing() {
   const [submitting, setSubmitting] = useState(false)
   const [flash, setFlash] = useState({ type: '', msg: '' })
 
-  // Role guard — only listers can post
-  useEffect(() => {
-    if (user && user.role !== 'lister') navigate('/')
-  }, [user, navigate])
-
   // Pre-fill contact fields from logged-in user's profile
   useEffect(() => {
     if (user) {
