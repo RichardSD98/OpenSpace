@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const MONTHS = [
@@ -40,6 +41,7 @@ function getFirstDayOfMonth(year, month) {
 export default function DatePicker({ value, onChange, min, required = false }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef(null)
+  const reduceMotion = useReducedMotion()
 
   const today = new Date()
   const minDate = parseDate(min) || today
@@ -147,8 +149,14 @@ export default function DatePicker({ value, onChange, min, required = false }) {
       </button>
 
       {/* Calendar panel */}
-      {open && (
-        <div style={{
+      <AnimatePresence>
+        {open && (
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.98 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          style={{
           position: 'absolute',
           top: 'calc(100% + 4px)',
           left: 0,
@@ -275,8 +283,9 @@ export default function DatePicker({ value, onChange, min, required = false }) {
               )
             })}
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

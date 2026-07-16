@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
 import { buildListingParams } from '../components/ListingSearch'
@@ -73,9 +74,19 @@ function CustomSelect({ label, value, options, onChange }) {
   )
 }
 
+const gridVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+}
+
 export default function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const reduceMotion = useReducedMotion()
+  const heroRef = useRef(null)
+  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const heroOpacity = useTransform(heroScroll, [0, 1], [1, 0.3])
+  const heroY = useTransform(heroScroll, [0, 1], [0, 40])
   const [listings, setListings] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -148,7 +159,11 @@ export default function Home() {
   return (
     <div ref={pageRef}>
       {/* ── Hero ── */}
-      <section className="hero">
+      <motion.section
+        ref={heroRef}
+        className="hero"
+        style={reduceMotion ? undefined : { opacity: heroOpacity, y: heroY }}
+      >
         <div className="hero-tag">Windhoek Rentals</div>
         <h1>Find your space.<br /><span>Before you call.</span></h1>
         <p className="hero-p">
@@ -156,19 +171,28 @@ export default function Home() {
           Direct from landlords — no agents, no commission.
         </p>
         <div className="hero-actions">
-          <button
+          <motion.button
             className="btn-main"
             onClick={() => listingsRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            whileHover={reduceMotion ? undefined : { scale: 1.03 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            transition={{ duration: 0.15 }}
           >
             Browse listings
-          </button>
+          </motion.button>
           {(!user || user.role === 'lister') && (
-            <button className="btn-ghost" onClick={() => navigate('/post-listing')}>
+            <motion.button
+              className="btn-ghost"
+              onClick={() => navigate('/post-listing')}
+              whileHover={reduceMotion ? undefined : { scale: 1.03 }}
+              whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+              transition={{ duration: 0.15 }}
+            >
               List a property
-            </button>
+            </motion.button>
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── Trust Line ── */}
       <div className="trust-line">
@@ -241,9 +265,14 @@ export default function Home() {
               No listings match your search. Try different filters.
             </div>
           ) : (
-            <div className="listings">
+            <motion.div
+              className="listings"
+              initial={reduceMotion ? false : 'hidden'}
+              animate="visible"
+              variants={reduceMotion ? undefined : gridVariants}
+            >
               {listings.map((l, i) => <ListingCard key={l._id} listing={l} index={i} />)}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

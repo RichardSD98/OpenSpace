@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
 import ListingSearch, {
@@ -16,6 +17,11 @@ import { useReveal } from '../context/useReveal'
 
 const PAGE_SIZE = 12
 
+const gridVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05 } },
+}
+
 function chipFromQuery(params) {
   if (params.get('availableNow') === 'true') return 'Available now'
   if (params.get('amenity') === 'Furnished') return 'Furnished'
@@ -28,6 +34,7 @@ function chipFromQuery(params) {
 
 export default function Listings() {
   const pageRef = useReveal()
+  const reduceMotion = useReducedMotion()
   const [searchParams, setSearchParams] = useSearchParams()
   const initial = useMemo(() => new URLSearchParams(searchParams), [])
 
@@ -156,11 +163,17 @@ export default function Listings() {
             No listings match your search. Try different filters.
           </div>
         ) : (
-          <div className="listings">
+          <motion.div
+            className="listings"
+            key={page}
+            initial={reduceMotion ? false : 'hidden'}
+            animate="visible"
+            variants={reduceMotion ? undefined : gridVariants}
+          >
             {listings.map((listing, i) => (
               <ListingCard key={listing._id} listing={listing} index={i} />
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 

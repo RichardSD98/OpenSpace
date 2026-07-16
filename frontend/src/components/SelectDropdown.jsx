@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ChevronDown, Check, Search } from 'lucide-react'
 
 export default function SelectDropdown({
@@ -13,6 +14,7 @@ export default function SelectDropdown({
   const [query, setQuery] = useState('')
   const containerRef = useRef(null)
   const searchRef = useRef(null)
+  const reduceMotion = useReducedMotion()
 
   // Close on outside click
   useEffect(() => {
@@ -121,8 +123,14 @@ export default function SelectDropdown({
       </button>
 
       {/* Dropdown panel */}
-      {open && (
-        <div style={{
+      <AnimatePresence>
+        {open && (
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.98 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          style={{
           position: 'absolute',
           top: 'calc(100% + 4px)',
           left: 0,
@@ -203,8 +211,9 @@ export default function SelectDropdown({
               )
             })}
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

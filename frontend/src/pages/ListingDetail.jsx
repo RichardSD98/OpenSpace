@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { Phone, Mail, MessageCircle, MapPin, Check, CheckCircle, Heart, Share2, Check as CheckIcon } from 'lucide-react'
 import Flash from '../components/Flash'
 import api from '../api/axios'
@@ -9,7 +10,7 @@ import MapEmbed from '../components/MapEmbed'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
 
-function Lightbox({ photos, index, onClose, onPrev, onNext }) {
+function Lightbox({ photos, index, onClose, onPrev, onNext, reduceMotion }) {
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') onClose()
@@ -21,8 +22,12 @@ function Lightbox({ photos, index, onClose, onPrev, onNext }) {
   }, [onClose, onPrev, onNext])
 
   return (
-    <div
+    <motion.div
       onClick={onClose}
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={reduceMotion ? undefined : { opacity: 0 }}
+      transition={{ duration: 0.2 }}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
         background: 'rgba(0,0,0,0.92)',
@@ -40,11 +45,13 @@ function Lightbox({ photos, index, onClose, onPrev, onNext }) {
           }}
         >‹</button>
       )}
-      <img
+      <motion.img
+        layoutId={reduceMotion ? undefined : 'detail-photo'}
         src={photos[index]}
         onClick={e => e.stopPropagation()}
         alt=""
         onError={e => { e.target.src = PLACEHOLDER }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         style={{ maxWidth: '90vw', maxHeight: '88vh', objectFit: 'contain', borderRadius: '2px', boxShadow: '0 8px 48px rgba(0,0,0,0.6)' }}
       />
       {photos.length > 1 && (
@@ -64,7 +71,7 @@ function Lightbox({ photos, index, onClose, onPrev, onNext }) {
         </span>
       )}
       <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1.25rem', background: 'none', border: 'none', color: '#fff', fontSize: '1.6rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -72,6 +79,7 @@ export default function ListingDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const reduceMotion = useReducedMotion()
   const [listing, setListing] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activePhoto, setActivePhoto] = useState(0)
@@ -175,13 +183,26 @@ export default function ListingDetail() {
 
   return (
     <div className="detail-page">
-      {lightbox && <Lightbox photos={photos} index={activePhoto} onClose={() => setLightbox(false)} onPrev={lightboxPrev} onNext={lightboxNext} />}
+      <AnimatePresence>
+        {lightbox && (
+          <Lightbox
+            photos={photos}
+            index={activePhoto}
+            onClose={() => setLightbox(false)}
+            onPrev={lightboxPrev}
+            onNext={lightboxNext}
+            reduceMotion={reduceMotion}
+          />
+        )}
+      </AnimatePresence>
       <button onClick={() => navigate(-1)} className="back-link">← Back to listings</button>
 
       <div className="detail-grid">
         <div className="detail-main">
           <div className="detail-gallery">
-            <img src={photos[activePhoto]} alt={listing.title} className="detail-main-photo"
+            <motion.img
+              layoutId={reduceMotion ? undefined : 'detail-photo'}
+              src={photos[activePhoto]} alt={listing.title} className="detail-main-photo"
               onClick={() => setLightbox(true)} onError={e => { e.target.src = PLACEHOLDER }} style={{ cursor: 'zoom-in' }} />
             {photos.length > 1 && (
               <div className="detail-thumbs">
