@@ -96,7 +96,10 @@ export default function Home() {
   const [budget, setBudget] = useState(BUDGETS[0])
   const [activeChip, setActiveChip] = useState('All')
   const [counts, setCounts] = useState({ total: 0, hoods: 0 })
-  const recent = useRecentlyViewed()
+  const rawRecent = useRecentlyViewed()
+  const recent = user?.role === 'lister'
+    ? rawRecent.filter(l => l.landlord?._id === user._id)
+    : rawRecent
   const statsRef = useRef(null)
   const listingsRef = useRef(null)
   const pageRef = useReveal()
