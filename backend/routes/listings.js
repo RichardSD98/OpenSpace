@@ -22,6 +22,12 @@ router.get('/', async (req, res) => {
       .from('listings')
       .select('*, landlord:profiles(id, name, phone)', { count: 'exact' });
 
+    // Listers only browse their own inventory; renters (and logged-out visitors) see the full marketplace.
+    const requester = await getUserFromAuthHeader(req.headers.authorization);
+    if (requester?.role === 'lister') {
+      query = query.eq('landlord_id', requester.id);
+    }
+
     if (unitType) query = query.eq('unit_type', unitType);
     if (neighborhood) query = query.ilike('neighborhood', `%${neighborhood}%`);
     if (minRent) query = query.gte('rent', Number(minRent));
