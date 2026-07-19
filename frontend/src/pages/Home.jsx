@@ -168,10 +168,9 @@ export default function Home() {
         style={reduceMotion ? undefined : { opacity: heroOpacity, y: heroY }}
       >
         <div className="hero-tag">Windhoek Rentals</div>
-        <h1>Find your space.<br /><span>Before you call.</span></h1>
         <p className="hero-p">
-          Browse available apartments, flats and rooms across Windhoek.{' '}
-          Direct from landlords — no agents, no commission.
+          A simple platform connecting landlords and renters across Windhoek,{' '}
+          Namibia. Browse free. List free.
         </p>
         <div className="hero-actions">
           <motion.button
