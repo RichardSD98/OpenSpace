@@ -23,7 +23,7 @@ export const SORT_OPTIONS = [
   { label: 'Available soonest', value: 'available-asc' },
 ]
 
-export const CHIPS = ['All', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
+export const CHIPS = ['All', 'Shared rent', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
 
 export function buildListingParams({ neighborhood, unitType, budget, activeChip, sort, page, limit }) {
   const params = new URLSearchParams()
@@ -41,6 +41,7 @@ export function buildListingParams({ neighborhood, unitType, budget, activeChip,
   if (activeChip === 'Water included') params.set('amenity', 'Water included')
   if (activeChip === 'Pet friendly') params.set('amenity', 'Pet-friendly')
   if (activeChip === 'Available now') params.set('availableNow', 'true')
+  if (activeChip === 'Shared rent') params.set('sharedRent', 'true')
 
   return params
 }

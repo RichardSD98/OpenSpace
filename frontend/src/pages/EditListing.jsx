@@ -171,6 +171,16 @@ export default function EditListing() {
                 <input type="number" min={0} value={form.deposit} onChange={e => set('deposit', e.target.value)} className="form-input" />
               </div>
             </div>
+            <div className="form-field">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--fg)' }}>
+                <input type="checkbox" checked={form.sharedRent === true} onChange={e => set('sharedRent', e.target.checked)} />
+                Open to shared rent
+              </label>
+              <p style={{ fontSize: '0.78rem', color: 'var(--grey)', marginTop: '0.35rem' }}>
+                Tenants can split the rent with a roommate — common in Windhoek.
+                {Number(form.rent) > 0 && ` That's about N$${Math.ceil(Number(form.rent) / 2).toLocaleString()} per person for two sharing.`}
+              </p>
+            </div>
           </div>
 
           <div className="form-section">

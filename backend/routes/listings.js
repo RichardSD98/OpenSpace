@@ -14,6 +14,7 @@ router.get('/', async (req, res) => {
       available,
       availableNow,
       amenity,
+      sharedRent,
       sort = 'newest',
       page = 1,
       limit = 12,
@@ -35,6 +36,7 @@ router.get('/', async (req, res) => {
     if (available !== undefined) query = query.eq('is_available', available === 'true');
     if (availableNow === 'true') query = query.lte('available_from', new Date().toISOString().slice(0, 10));
     if (amenity) query = query.contains('amenities', [amenity]);
+    if (sharedRent === 'true') query = query.eq('shared_rent', true);
 
     switch (sort) {
       case 'rent-asc':
@@ -157,6 +159,7 @@ function normalise(row) {
     unitType: row.unit_type,
     rent: row.rent,
     deposit: row.deposit,
+    sharedRent: row.shared_rent === true,
     neighborhood: row.neighborhood,
     address: row.address,
     bedrooms: row.bedrooms,
@@ -213,6 +216,7 @@ function fromFrontend(body, landlordId) {
     unit_type: body.unitType,
     rent: Number(body.rent),
     deposit: Number(body.deposit) || 0,
+    shared_rent: body.sharedRent === true,
     neighborhood: body.neighborhood,
     address: body.address,
     bedrooms: Number(body.bedrooms) || 1,

@@ -8,7 +8,7 @@ router.get('/', protect, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('favourites')
-      .select('listing_id, created_at, listing:listings(id, title, neighborhood, rent, unit_type, photos, is_available)')
+      .select('listing_id, created_at, listing:listings(id, title, neighborhood, rent, unit_type, photos, is_available, shared_rent)')
       .eq('user_id', req.user._id)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -24,6 +24,7 @@ router.get('/', protect, async (req, res) => {
         unitType: f.listing.unit_type,
         photos: f.listing.photos || [],
         isAvailable: f.listing.is_available,
+        sharedRent: f.listing.shared_rent === true,
         savedAt: f.created_at,
       }));
 

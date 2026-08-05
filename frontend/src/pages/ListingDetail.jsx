@@ -219,6 +219,7 @@ export default function ListingDetail() {
             <div className="detail-badges">
               <span className="listing-type-pill">{listing.unitType}</span>
               <span className={`v-badge${listing.isAvailable ? '' : ' taken'}`}>{listing.isAvailable ? 'Available' : 'Not available'}</span>
+              {listing.sharedRent && <span className="listing-type-pill">Shared rent OK</span>}
             </div>
             <h1 className="detail-title">{listing.title}</h1>
             <p className="detail-location">
@@ -277,6 +278,11 @@ export default function ListingDetail() {
               <div>
                 <p className="detail-price">N${listing.rent.toLocaleString()}<span>/mo</span></p>
                 {listing.deposit > 0 && <p className="detail-deposit">Deposit: N${listing.deposit.toLocaleString()}</p>}
+                {listing.sharedRent && (
+                  <p className="detail-deposit" style={{ color: 'var(--green)' }}>
+                    Open to shared rent — about N${Math.ceil(listing.rent / 2).toLocaleString()} each for two sharing
+                  </p>
+                )}
               </div>
               <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <button

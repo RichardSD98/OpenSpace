@@ -36,7 +36,7 @@ const BUDGETS = [
   { label: 'N$8,000+', max: null, min: 8000 },
 ]
 
-const CHIPS = ['All', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
+const CHIPS = ['All', 'Shared rent', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
 
 function CustomSelect({ label, value, options, onChange }) {
   const [open, setOpen] = useState(false)

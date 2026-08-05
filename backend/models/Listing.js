@@ -29,6 +29,7 @@ const listingSchema = new mongoose.Schema(
     },
     rent: { type: Number, required: true, min: 0 },
     deposit: { type: Number, default: 0, min: 0 },
+    sharedRent: { type: Boolean, default: false },
     neighborhood: {
       type: String,
       enum: NEIGHBORHOODS,

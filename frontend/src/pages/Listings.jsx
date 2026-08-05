@@ -24,6 +24,7 @@ const gridVariants = {
 
 function chipFromQuery(params) {
   if (params.get('availableNow') === 'true') return 'Available now'
+  if (params.get('sharedRent') === 'true') return 'Shared rent'
   if (params.get('amenity') === 'Furnished') return 'Furnished'
   if (params.get('amenity') === 'Water included') return 'Water included'
   if (params.get('amenity') === 'Pet-friendly') return 'Pet friendly'

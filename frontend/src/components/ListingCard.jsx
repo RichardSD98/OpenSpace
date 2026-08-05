@@ -55,6 +55,9 @@ export default function ListingCard({ listing, index = 0 }) {
         {listing.deposit > 0 && (
           <span>N${listing.deposit.toLocaleString()} deposit</span>
         )}
+        {listing.sharedRent && (
+          <span>Shared rent OK</span>
+        )}
         {listing.availableFrom && new Date(listing.availableFrom) <= new Date() && (
           <span>Available now</span>
         )}
