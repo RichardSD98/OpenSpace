@@ -1,3 +1,7 @@
 node_modules/
 .env
 *.log
+
+# Supabase CLI scratch state — migrations/ and config.toml stay tracked
+supabase/.temp/
+supabase/.branches/

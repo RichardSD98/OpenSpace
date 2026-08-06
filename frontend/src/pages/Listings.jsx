@@ -9,7 +9,9 @@ import ListingSearch, {
   UNIT_TYPES,
   budgetFromQuery,
   buildListingParams,
+  chipFromQuery,
   optionFromValue,
+  sharedRentFromQuery,
 } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
@@ -20,17 +22,6 @@ const PAGE_SIZE = 12
 const gridVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.05 } },
-}
-
-function chipFromQuery(params) {
-  if (params.get('availableNow') === 'true') return 'Available now'
-  if (params.get('sharedRent') === 'true') return 'Shared rent'
-  if (params.get('amenity') === 'Furnished') return 'Furnished'
-  if (params.get('amenity') === 'Water included') return 'Water included'
-  if (params.get('amenity') === 'Pet-friendly') return 'Pet friendly'
-  if (params.get('neighborhood') === 'UNAM') return 'Near UNAM'
-  if (params.get('neighborhood') === 'IUM') return 'Near IUM'
-  return 'All'
 }
 
 export default function Listings() {
@@ -50,16 +41,18 @@ export default function Listings() {
   const [budget, setBudget] = useState(budgetFromQuery(initial.get('minRent'), initial.get('maxRent')))
   const [sort, setSort] = useState(optionFromValue(SORT_OPTIONS, initial.get('sort') || 'newest'))
   const [activeChip, setActiveChip] = useState(chipFromQuery(initial))
+  const [sharedRent, setSharedRent] = useState(sharedRentFromQuery(initial))
 
   const makeParams = useCallback((pageNumber = page) => buildListingParams({
     neighborhood,
     unitType,
     budget,
     activeChip,
+    sharedRent,
     sort,
     page: pageNumber,
     limit: PAGE_SIZE,
-  }), [activeChip, budget, neighborhood, page, sort, unitType])
+  }), [activeChip, budget, neighborhood, page, sharedRent, sort, unitType])
 
   const fetchListings = useCallback(async (pageNumber = page) => {
     setLoading(true)
@@ -94,6 +87,11 @@ export default function Listings() {
     setPage(1)
   }
 
+  const handleSharedRentChange = (next) => {
+    setSharedRent(next)
+    setPage(1)
+  }
+
   const goToPage = (nextPage) => {
     const bounded = Math.min(Math.max(nextPage, 1), pages)
     setPage(bounded)
@@ -124,6 +122,8 @@ export default function Listings() {
         setSort={(nextSort) => { setSort(nextSort); setPage(1) }}
         activeChip={activeChip}
         setActiveChip={handleChipChange}
+        sharedRent={sharedRent}
+        setSharedRent={handleSharedRentChange}
         onSubmit={handleSearch}
         showSort
       />
@@ -144,6 +144,7 @@ export default function Listings() {
             setBudget(BUDGETS[0])
             setSort(SORT_OPTIONS[0])
             setActiveChip('All')
+            setSharedRent(false)
             setPage(1)
           }}
         >

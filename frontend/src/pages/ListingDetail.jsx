@@ -7,6 +7,7 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { SkeletonDetail } from '../components/Skeleton'
 import MapEmbed from '../components/MapEmbed'
+import { formatMoney, sharersLabel, splitRent } from '../lib/rent'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
 
@@ -278,9 +279,9 @@ export default function ListingDetail() {
               <div>
                 <p className="detail-price">N${listing.rent.toLocaleString()}<span>/mo</span></p>
                 {listing.deposit > 0 && <p className="detail-deposit">Deposit: N${listing.deposit.toLocaleString()}</p>}
-                {listing.sharedRent && (
+                {listing.sharedRent && splitRent(listing.rent, listing.bedrooms) && (
                   <p className="detail-deposit" style={{ color: 'var(--green)' }}>
-                    Open to shared rent — about N${Math.ceil(listing.rent / 2).toLocaleString()} each for two sharing
+                    Open to shared rent — about {formatMoney(splitRent(listing.rent, listing.bedrooms))} each for {sharersLabel(listing.bedrooms)}
                   </p>
                 )}
               </div>

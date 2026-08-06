@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
-import { buildListingParams } from '../components/ListingSearch'
+import { BUDGETS, FilterChips, UNIT_TYPES, buildListingParams } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
@@ -19,24 +19,6 @@ function useRecentlyViewed() {
   }, [])
   return recent
 }
-
-const UNIT_TYPES = [
-  { label: 'Any type', value: '' },
-  { label: 'Apartment', value: 'apartment' },
-  { label: 'Flat', value: 'flat' },
-  { label: 'Single Room', value: 'single room' },
-  { label: 'Studio', value: 'studio' },
-]
-
-const BUDGETS = [
-  { label: 'Any price', max: null, min: null },
-  { label: 'Up to N$3,500', max: 3500, min: null },
-  { label: 'Up to N$5,500', max: 5500, min: null },
-  { label: 'Up to N$8,000', max: 8000, min: null },
-  { label: 'N$8,000+', max: null, min: 8000 },
-]
-
-const CHIPS = ['All', 'Shared rent', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
 
 function CustomSelect({ label, value, options, onChange }) {
   const [open, setOpen] = useState(false)
@@ -95,6 +77,7 @@ export default function Home() {
   const [unitType, setUnitType] = useState(UNIT_TYPES[0])
   const [budget, setBudget] = useState(BUDGETS[0])
   const [activeChip, setActiveChip] = useState('All')
+  const [sharedRent, setSharedRent] = useState(false)
   const [counts, setCounts] = useState({ total: 0, hoods: 0 })
   const rawRecent = useRecentlyViewed()
   const recent = user?.role === 'lister'
@@ -104,7 +87,7 @@ export default function Home() {
   const listingsRef = useRef(null)
   const pageRef = useReveal()
 
-  const fetchListings = useCallback(async (nbhood, ut, bgt, chip) => {
+  const fetchListings = useCallback(async (nbhood, ut, bgt, chip, shared) => {
     setLoading(true)
     setError('')
     try {
@@ -113,6 +96,7 @@ export default function Home() {
         unitType: ut,
         budget: bgt,
         activeChip: chip,
+        sharedRent: shared,
         limit: 6,
       })
       const { data } = await api.get(`/listings?${params}`)
@@ -125,7 +109,7 @@ export default function Home() {
     }
   }, [])
 
-  useEffect(() => { fetchListings(neighborhood, unitType, budget, activeChip) }, [fetchListings, activeChip])
+  useEffect(() => { fetchListings(neighborhood, unitType, budget, activeChip, sharedRent) }, [fetchListings, activeChip, sharedRent])
 
   useEffect(() => {
     if (!statsRef.current) return
@@ -149,7 +133,7 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    fetchListings(neighborhood, unitType, budget, activeChip)
+    fetchListings(neighborhood, unitType, budget, activeChip, sharedRent)
   }
 
   const viewAllParams = buildListingParams({
@@ -157,6 +141,7 @@ export default function Home() {
     unitType,
     budget,
     activeChip,
+    sharedRent,
   })
 
   return (
@@ -234,18 +219,12 @@ export default function Home() {
             <button type="submit" className="s-btn">Search</button>
           </div>
         </form>
-        <div className="filters">
-          {CHIPS.map(chip => (
-            <button
-              key={chip}
-              type="button"
-              className={`filter${activeChip === chip ? ' on' : ''}`}
-              onClick={() => setActiveChip(chip)}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
+        <FilterChips
+          activeChip={activeChip}
+          setActiveChip={setActiveChip}
+          sharedRent={sharedRent}
+          setSharedRent={setSharedRent}
+        />
       </div>
 
       {/* ── Listings ── */}

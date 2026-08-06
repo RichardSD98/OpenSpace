@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import Flash from '../components/Flash'
 import PhoneInput from '../components/PhoneInput'
 import { NEIGHBORHOODS } from '../lib/neighborhoods'
+import { formatMoney, sharersLabel, splitRent } from '../lib/rent'
 import SelectDropdown from '../components/SelectDropdown'
 import DatePicker from '../components/DatePicker'
 
@@ -172,14 +173,18 @@ export default function EditListing() {
               </div>
             </div>
             <div className="form-field">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--fg)' }}>
-                <input type="checkbox" checked={form.sharedRent === true} onChange={e => set('sharedRent', e.target.checked)} />
-                Open to shared rent
+              <label className={`os-check${form.sharedRent === true ? ' on' : ''}`}>
+                <input type="checkbox" className="os-check-input"
+                  checked={form.sharedRent === true} onChange={e => set('sharedRent', e.target.checked)} />
+                <span className="os-check-box" aria-hidden="true" />
+                <span className="os-check-text">
+                  <span className="os-check-title">Open to shared rent</span>
+                  <span className="os-check-desc">
+                    Tenants can split the rent with a roommate — common in Windhoek.
+                    {splitRent(form.rent, form.bedrooms) && ` That's about ${formatMoney(splitRent(form.rent, form.bedrooms))} per person for ${sharersLabel(form.bedrooms)}.`}
+                  </span>
+                </span>
               </label>
-              <p style={{ fontSize: '0.78rem', color: 'var(--grey)', marginTop: '0.35rem' }}>
-                Tenants can split the rent with a roommate — common in Windhoek.
-                {Number(form.rent) > 0 && ` That's about N$${Math.ceil(Number(form.rent) / 2).toLocaleString()} per person for two sharing.`}
-              </p>
             </div>
           </div>
 
@@ -217,9 +222,13 @@ export default function EditListing() {
             </div>
             <div className="form-field">
               <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Availability</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--fg)' }}>
-                <input type="checkbox" checked={form.isAvailable} onChange={e => set('isAvailable', e.target.checked)} />
-                Mark as available
+              <label className={`os-check${form.isAvailable ? ' on' : ''}`}>
+                <input type="checkbox" className="os-check-input"
+                  checked={form.isAvailable} onChange={e => set('isAvailable', e.target.checked)} />
+                <span className="os-check-box" aria-hidden="true" />
+                <span className="os-check-text">
+                  <span className="os-check-title">Mark as available</span>
+                </span>
               </label>
             </div>
             <div className="form-field">
