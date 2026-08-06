@@ -103,7 +103,7 @@ export default function ViewingRequests() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{listing?.title || 'Listing'}</p>
                       <span style={{
-                        fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em',
+                        fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em',
                         textTransform: 'uppercase', color: STATUS_COLOR[status],
                       }}>
                         {STATUS_LABEL[status]}
