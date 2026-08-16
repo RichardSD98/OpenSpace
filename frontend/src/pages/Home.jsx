@@ -5,55 +5,43 @@ import { SearchX } from 'lucide-react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
 import EmptyState, { LaunchingSoonState } from '../components/EmptyState'
+import { readRecentlyViewedIds, writeRecentlyViewedIds } from '../lib/recentlyViewed'
 import { BUDGETS, FilterChips, UNIT_TYPES, buildListingParams, hasActiveFilters } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
 import { useAuth } from '../context/AuthContext'
 
-const RECENTLY_VIEWED_KEY = 'os_recently_viewed'
-
-// ListingDetail caches whole listing objects here, so this history is a copy of
-// the database taken at view time and can outlive what it describes. Reconcile
-// it against the API before rendering: a listing that was taken down would
-// otherwise sit on the homepage forever, with broken images where its photos
-// used to be. Validating also refreshes rent and availability, which the cached
-// copy freezes at whatever they were when the page was opened.
+// Resolves the stored IDs into listings. Nothing is rendered from localStorage
+// directly, so the section can only show listings that still exist — the ID is
+// the record that someone viewed it, the database is what it currently is.
+// An empty catalogue therefore produces an empty section, with no stale cards
+// to prune away first.
 function useRecentlyViewed() {
   const [recent, setRecent] = useState([])
 
   useEffect(() => {
-    let cached
-    try {
-      cached = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]')
-    } catch {
-      localStorage.removeItem(RECENTLY_VIEWED_KEY)
-      return
-    }
-    if (!Array.isArray(cached) || cached.length === 0) return
+    const ids = readRecentlyViewedIds()
+    if (ids.length === 0) return
 
     let cancelled = false
 
-    Promise.all(cached.map(async (entry) => {
-      const listingId = entry?.id || entry?._id
-      if (!listingId) return null
+    Promise.all(ids.map(async (id) => {
       try {
-        const { data } = await api.get(`/listings/${listingId}`)
-        return data
+        const { data } = await api.get(`/listings/${id}`)
+        return { id, listing: data }
       } catch (err) {
-        // Only a definitive 404 prunes an entry. A network failure or a backend
-        // that is down must not silently erase someone's history.
-        return err.response?.status === 404 ? null : entry
+        // A 404 is the listing genuinely being gone, so forget it. Any other
+        // failure — offline, backend down — says nothing about whether it
+        // exists, so keep the ID and simply show nothing this time.
+        return { id, listing: null, keep: err.response?.status !== 404 }
       }
     })).then((results) => {
       if (cancelled) return
-      const live = results.filter(Boolean)
-      localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(live.slice(0, 6)))
-      setRecent(live.slice(0, 4))
+      writeRecentlyViewedIds(results.filter(r => r.listing || r.keep).map(r => r.id))
+      setRecent(results.map(r => r.listing).filter(Boolean).slice(0, 4))
     })
 
-    // Nothing is rendered until the check resolves — showing the cache first
-    // and pulling it away a moment later is worse than showing it late.
     return () => { cancelled = true }
   }, [])
 
