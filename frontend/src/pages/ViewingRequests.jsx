@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Inbox } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Flash from '../components/Flash'
+import EmptyState from '../components/EmptyState'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
@@ -78,9 +80,24 @@ export default function ViewingRequests() {
       {loading && <p style={{ color: 'var(--grey)' }}>Loading…</p>}
 
       {!loading && filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--grey)' }}>
-          <p>{filter === 'all' ? 'No viewing requests yet.' : `No ${filter} requests.`}</p>
-        </div>
+        // Two different situations wearing the same shape: nobody has asked
+        // yet, versus nobody has asked *within this status filter*. The second
+        // one gets a way back to the full list rather than a dead end.
+        filter === 'all' ? (
+          <EmptyState
+            icon={Inbox}
+            title="No viewing requests yet"
+            description="Renters who want to see one of your properties will show up here, and you can accept or decline from this page."
+            action={{ to: '/my-listings', label: 'Manage your listings' }}
+          />
+        ) : (
+          <EmptyState
+            icon={Inbox}
+            title={`No ${filter} requests`}
+            description={`You have ${counts.all} request${counts.all === 1 ? '' : 's'} in total, but none marked ${filter}.`}
+            action={{ onClick: () => setFilter('all'), label: 'Show all requests' }}
+          />
+        )
       )}
 
       {!loading && filtered.length > 0 && (

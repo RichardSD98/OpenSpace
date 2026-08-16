@@ -696,13 +696,58 @@ html.dark .dm-moon { opacity: 1; }
   color: var(--grey);
   font-weight: 300;
 }
-.listings-empty {
-  padding: 4rem 0;
+/* ─── Empty states ─────────────────────────────────────────────────────
+   One block for every "there is nothing here" surface — browse results,
+   saved listings, a lister's inventory, viewing requests. Rendered by
+   components/EmptyState.jsx; do not hand-roll another one.
+   `boxed` stands alone inside a page, `bare` sits where a bordered grid
+   would otherwise have started.                                        */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+}
+.empty-state-boxed {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.empty-state-bare {
+  border-top: 1px solid var(--border);
+}
+.empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-circle);
   color: var(--grey);
+}
+.empty-state-title {
+  font-family: 'Playfair Display', serif;
+  font-size: var(--text-xl);
+  font-weight: 400;
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg);
+}
+.empty-state-text {
+  max-width: 42ch;
   font-size: var(--text-md);
   font-weight: 300;
-  border-top: 1px solid var(--border);
+  line-height: 1.6;
+  color: var(--grey);
+}
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
 }
 .listings {
   display: grid;
@@ -2260,21 +2305,6 @@ footer ul li a:hover { color: var(--fg); }
   color: var(--grey);
   font-weight: 300;
 }
-.my-listings-empty {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4rem 2rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-}
-.my-listings-empty-text {
-  font-size: var(--text-md);
-  color: var(--grey);
-  font-weight: 300;
-}
 .my-listings-list {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -2676,12 +2706,6 @@ textarea {
   margin-bottom: 2rem;
 }
 
-.my-requests-empty {
-  text-align: center;
-  padding: 4rem 0;
-  color: var(--grey);
-}
-
 .my-requests-list {
   display: flex;
   flex-direction: column;
@@ -3080,7 +3104,7 @@ textarea {
     white-space: normal;
   }
 
-  .my-listings-empty {
+  .empty-state {
     padding: 2.5rem 1rem;
   }
 

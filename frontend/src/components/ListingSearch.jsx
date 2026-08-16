@@ -57,6 +57,20 @@ export function buildListingParams({ neighborhood, unitType, budget, activeChip,
   return params
 }
 
+// Everything buildListingParams can set that actually narrows the result set.
+// `sort`, `page` and `limit` are excluded — they reorder or window the results
+// but never cause an empty one, so they must not make an empty page blame a
+// filter that is not there.
+const NARROWING_PARAMS = ['unitType', 'maxRent', 'minRent', 'neighborhood', 'amenity', 'availableNow', 'sharedRent']
+
+// Read from the params that were actually sent, not from the form state — the
+// two differ whenever someone types into a field without submitting, and the
+// empty state should describe the request the results came from.
+export function hasActiveFilters(params) {
+  const search = typeof params === 'string' ? new URLSearchParams(params) : params
+  return NARROWING_PARAMS.some(key => search.has(key))
+}
+
 export function chipFromQuery(params) {
   const match = CHIP_FILTERS.find(chip => {
     const entries = Object.entries(chip.params)

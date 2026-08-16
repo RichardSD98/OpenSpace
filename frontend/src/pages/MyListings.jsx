@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Building2 } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Flash from '../components/Flash'
+import EmptyState from '../components/EmptyState'
 import { SkeletonListingRow } from '../components/Skeleton'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=80'
@@ -89,10 +91,12 @@ export default function MyListings() {
       <Flash message={flash.msg} type={flash.type} />
 
       {listings.length === 0 ? (
-        <div className="my-listings-empty">
-          <p className="my-listings-empty-text">No listings yet. Post your first property to get started.</p>
-          <Link to="/post-listing" className="btn-main">Post a listing</Link>
-        </div>
+        <EmptyState
+          icon={Building2}
+          title="No listings yet"
+          description="Post your first property and it will appear here, where you can edit it, mark it taken, or take it down."
+          action={{ to: '/post-listing', label: 'Post a listing' }}
+        />
       ) : (
         <div className="my-listings-list">
           {listings.map(listing => (

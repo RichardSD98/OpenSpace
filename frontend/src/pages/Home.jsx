@@ -1,22 +1,62 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
+import { SearchX } from 'lucide-react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
-import { BUDGETS, FilterChips, UNIT_TYPES, buildListingParams } from '../components/ListingSearch'
+import EmptyState, { LaunchingSoonState } from '../components/EmptyState'
+import { BUDGETS, FilterChips, UNIT_TYPES, buildListingParams, hasActiveFilters } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
 import { useAuth } from '../context/AuthContext'
 
+const RECENTLY_VIEWED_KEY = 'os_recently_viewed'
+
+// ListingDetail caches whole listing objects here, so this history is a copy of
+// the database taken at view time and can outlive what it describes. Reconcile
+// it against the API before rendering: a listing that was taken down would
+// otherwise sit on the homepage forever, with broken images where its photos
+// used to be. Validating also refreshes rent and availability, which the cached
+// copy freezes at whatever they were when the page was opened.
 function useRecentlyViewed() {
   const [recent, setRecent] = useState([])
+
   useEffect(() => {
+    let cached
     try {
-      const stored = JSON.parse(localStorage.getItem('os_recently_viewed') || '[]')
-      setRecent(stored.slice(0, 4))
-    } catch {}
+      cached = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]')
+    } catch {
+      localStorage.removeItem(RECENTLY_VIEWED_KEY)
+      return
+    }
+    if (!Array.isArray(cached) || cached.length === 0) return
+
+    let cancelled = false
+
+    Promise.all(cached.map(async (entry) => {
+      const listingId = entry?.id || entry?._id
+      if (!listingId) return null
+      try {
+        const { data } = await api.get(`/listings/${listingId}`)
+        return data
+      } catch (err) {
+        // Only a definitive 404 prunes an entry. A network failure or a backend
+        // that is down must not silently erase someone's history.
+        return err.response?.status === 404 ? null : entry
+      }
+    })).then((results) => {
+      if (cancelled) return
+      const live = results.filter(Boolean)
+      localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(live.slice(0, 6)))
+      setRecent(live.slice(0, 4))
+    })
+
+    // Nothing is rendered until the check resolves — showing the cache first
+    // and pulling it away a moment later is worse than showing it late.
+    return () => { cancelled = true }
   }, [])
+
   return recent
 }
 
@@ -78,6 +118,9 @@ export default function Home() {
   const [budget, setBudget] = useState(BUDGETS[0])
   const [activeChip, setActiveChip] = useState('All')
   const [sharedRent, setSharedRent] = useState(false)
+  // Whether the request behind the current results narrowed anything, which
+  // decides which of the two empty states applies.
+  const [isFiltered, setFiltered] = useState(false)
   const [counts, setCounts] = useState({ total: 0, hoods: 0 })
   const rawRecent = useRecentlyViewed()
   const recent = user?.role === 'lister'
@@ -100,6 +143,7 @@ export default function Home() {
         limit: 6,
       })
       const { data } = await api.get(`/listings?${params}`)
+      setFiltered(hasActiveFilters(params))
       setListings(data.listings || [])
       setTotal(data.total || 0)
     } catch {
@@ -117,7 +161,10 @@ export default function Home() {
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return
       observer.disconnect()
-      const targets = { total: Math.max(total, 340), hoods: 15 }
+      // Counts up to the real total. This used to floor at 340, which meant an
+      // empty or small database still advertised "340+ listings" above a grid
+      // that showed nothing.
+      const targets = { total, hoods: 15 }
       const dur = 1200, steps = 40
       let i = 0
       const t = setInterval(() => {
@@ -134,6 +181,21 @@ export default function Home() {
   const handleSearch = (e) => {
     e.preventDefault()
     fetchListings(neighborhood, unitType, budget, activeChip, sharedRent)
+  }
+
+  const resetFilters = () => {
+    // Changing the chip or the shared-rent toggle already refetches via the
+    // effect below; the explicit call covers the case where only the fields
+    // were set, which nothing else watches.
+    const refetchesItself = activeChip !== 'All' || sharedRent
+
+    setNeighborhood('')
+    setUnitType(UNIT_TYPES[0])
+    setBudget(BUDGETS[0])
+    setSharedRent(false)
+    setActiveChip('All')
+
+    if (!refetchesItself) fetchListings('', UNIT_TYPES[0], BUDGETS[0], 'All', false)
   }
 
   const viewAllParams = buildListingParams({
@@ -242,9 +304,18 @@ export default function Home() {
               {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           ) : listings.length === 0 ? (
-            <div style={{ padding: '4rem 0', textAlign: 'center', color: 'var(--grey)', fontSize: '0.9rem', fontWeight: 300 }}>
-              No listings match your search. Try different filters.
-            </div>
+            isFiltered ? (
+              <EmptyState
+                tone="bare"
+                icon={SearchX}
+                title="No matches for these filters"
+                description="Nothing fits every filter at once right now. Try a wider budget, or browse the full list."
+                action={{ onClick: resetFilters, label: 'Clear filters' }}
+                secondaryAction={{ to: '/listings', label: 'Browse all' }}
+              />
+            ) : (
+              <LaunchingSoonState tone="bare" />
+            )
           ) : (
             <motion.div
               className="listings"
@@ -276,8 +347,17 @@ export default function Home() {
       <div className="stats-wrap" ref={statsRef}>
         <div className="stats">
           <div className="stat reveal">
-            <div className="stat-n">{counts.total}+</div>
-            <div className="stat-l">Listings in Windhoek</div>
+            {total === 0 ? (
+              <>
+                <div className="stat-n">New</div>
+                <div className="stat-l">Now live in Windhoek</div>
+              </>
+            ) : (
+              <>
+                <div className="stat-n">{counts.total}+</div>
+                <div className="stat-l">Listings in Windhoek</div>
+              </>
+            )}
           </div>
           <div className="stat reveal">
             <div className="stat-n">{counts.hoods}</div>
