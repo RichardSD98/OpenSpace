@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'motion/react'
+import { SearchX } from 'lucide-react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
+import EmptyState, { LaunchingSoonState } from '../components/EmptyState'
 import ListingSearch, {
   BUDGETS,
   SORT_OPTIONS,
   UNIT_TYPES,
   budgetFromQuery,
   buildListingParams,
+  chipFromQuery,
+  hasActiveFilters,
   optionFromValue,
+  sharedRentFromQuery,
 } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
@@ -20,17 +25,6 @@ const PAGE_SIZE = 12
 const gridVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.05 } },
-}
-
-function chipFromQuery(params) {
-  if (params.get('availableNow') === 'true') return 'Available now'
-  if (params.get('sharedRent') === 'true') return 'Shared rent'
-  if (params.get('amenity') === 'Furnished') return 'Furnished'
-  if (params.get('amenity') === 'Water included') return 'Water included'
-  if (params.get('amenity') === 'Pet-friendly') return 'Pet friendly'
-  if (params.get('neighborhood') === 'UNAM') return 'Near UNAM'
-  if (params.get('neighborhood') === 'IUM') return 'Near IUM'
-  return 'All'
 }
 
 export default function Listings() {
@@ -50,16 +44,21 @@ export default function Listings() {
   const [budget, setBudget] = useState(budgetFromQuery(initial.get('minRent'), initial.get('maxRent')))
   const [sort, setSort] = useState(optionFromValue(SORT_OPTIONS, initial.get('sort') || 'newest'))
   const [activeChip, setActiveChip] = useState(chipFromQuery(initial))
+  const [sharedRent, setSharedRent] = useState(sharedRentFromQuery(initial))
+  // Whether the request behind the current results narrowed anything, which
+  // decides which of the two empty states applies.
+  const [isFiltered, setFiltered] = useState(hasActiveFilters(initial))
 
   const makeParams = useCallback((pageNumber = page) => buildListingParams({
     neighborhood,
     unitType,
     budget,
     activeChip,
+    sharedRent,
     sort,
     page: pageNumber,
     limit: PAGE_SIZE,
-  }), [activeChip, budget, neighborhood, page, sort, unitType])
+  }), [activeChip, budget, neighborhood, page, sharedRent, sort, unitType])
 
   const fetchListings = useCallback(async (pageNumber = page) => {
     setLoading(true)
@@ -68,6 +67,7 @@ export default function Listings() {
       const params = makeParams(pageNumber)
       setSearchParams(params, { replace: true })
       const { data } = await api.get(`/listings?${params}`)
+      setFiltered(hasActiveFilters(params))
       setListings(data.listings || [])
       setTotal(data.total || 0)
       setPages(data.pages || 1)
@@ -94,10 +94,25 @@ export default function Listings() {
     setPage(1)
   }
 
+  const handleSharedRentChange = (next) => {
+    setSharedRent(next)
+    setPage(1)
+  }
+
   const goToPage = (nextPage) => {
     const bounded = Math.min(Math.max(nextPage, 1), pages)
     setPage(bounded)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const resetFilters = () => {
+    setNeighborhood('')
+    setUnitType(UNIT_TYPES[0])
+    setBudget(BUDGETS[0])
+    setSort(SORT_OPTIONS[0])
+    setActiveChip('All')
+    setSharedRent(false)
+    setPage(1)
   }
 
   const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
@@ -124,6 +139,8 @@ export default function Listings() {
         setSort={(nextSort) => { setSort(nextSort); setPage(1) }}
         activeChip={activeChip}
         setActiveChip={handleChipChange}
+        sharedRent={sharedRent}
+        setSharedRent={handleSharedRentChange}
         onSubmit={handleSearch}
         showSort
       />
@@ -138,14 +155,7 @@ export default function Listings() {
         <button
           type="button"
           className="filter"
-          onClick={() => {
-            setNeighborhood('')
-            setUnitType(UNIT_TYPES[0])
-            setBudget(BUDGETS[0])
-            setSort(SORT_OPTIONS[0])
-            setActiveChip('All')
-            setPage(1)
-          }}
+          onClick={resetFilters}
         >
           Reset filters
         </button>
@@ -160,9 +170,20 @@ export default function Listings() {
             {Array.from({ length: PAGE_SIZE }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : listings.length === 0 ? (
-          <div className="listings-empty">
-            No listings match your search. Try different filters.
-          </div>
+          // "Try different filters" is only true advice when filters are
+          // actually set. On an empty marketplace it sends the reader off to
+          // adjust controls that were never the problem.
+          isFiltered ? (
+            <EmptyState
+              tone="bare"
+              icon={SearchX}
+              title="No matches for these filters"
+              description="Nothing in Windhoek fits every filter at once. Widening the budget or the neighbourhood usually helps."
+              action={{ onClick: resetFilters, label: 'Reset filters' }}
+            />
+          ) : (
+            <LaunchingSoonState tone="bare" />
+          )
         ) : (
           <motion.div
             className="listings"

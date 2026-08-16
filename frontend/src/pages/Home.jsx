@@ -1,42 +1,52 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
+import { SearchX } from 'lucide-react'
 import api from '../api/axios'
 import ListingCard from '../components/ListingCard'
-import { buildListingParams } from '../components/ListingSearch'
+import EmptyState, { LaunchingSoonState } from '../components/EmptyState'
+import { readRecentlyViewedIds, writeRecentlyViewedIds } from '../lib/recentlyViewed'
+import { BUDGETS, FilterChips, UNIT_TYPES, buildListingParams, hasActiveFilters } from '../components/ListingSearch'
 import { SkeletonCard } from '../components/Skeleton'
 import Footer from '../components/ui/Footer'
 import { useReveal } from '../context/useReveal'
 import { useAuth } from '../context/AuthContext'
 
+// Resolves the stored IDs into listings. Nothing is rendered from localStorage
+// directly, so the section can only show listings that still exist — the ID is
+// the record that someone viewed it, the database is what it currently is.
+// An empty catalogue therefore produces an empty section, with no stale cards
+// to prune away first.
 function useRecentlyViewed() {
   const [recent, setRecent] = useState([])
+
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('os_recently_viewed') || '[]')
-      setRecent(stored.slice(0, 4))
-    } catch {}
+    const ids = readRecentlyViewedIds()
+    if (ids.length === 0) return
+
+    let cancelled = false
+
+    Promise.all(ids.map(async (id) => {
+      try {
+        const { data } = await api.get(`/listings/${id}`)
+        return { id, listing: data }
+      } catch (err) {
+        // A 404 is the listing genuinely being gone, so forget it. Any other
+        // failure — offline, backend down — says nothing about whether it
+        // exists, so keep the ID and simply show nothing this time.
+        return { id, listing: null, keep: err.response?.status !== 404 }
+      }
+    })).then((results) => {
+      if (cancelled) return
+      writeRecentlyViewedIds(results.filter(r => r.listing || r.keep).map(r => r.id))
+      setRecent(results.map(r => r.listing).filter(Boolean).slice(0, 4))
+    })
+
+    return () => { cancelled = true }
   }, [])
+
   return recent
 }
-
-const UNIT_TYPES = [
-  { label: 'Any type', value: '' },
-  { label: 'Apartment', value: 'apartment' },
-  { label: 'Flat', value: 'flat' },
-  { label: 'Single Room', value: 'single room' },
-  { label: 'Studio', value: 'studio' },
-]
-
-const BUDGETS = [
-  { label: 'Any price', max: null, min: null },
-  { label: 'Up to N$3,500', max: 3500, min: null },
-  { label: 'Up to N$5,500', max: 5500, min: null },
-  { label: 'Up to N$8,000', max: 8000, min: null },
-  { label: 'N$8,000+', max: null, min: 8000 },
-]
-
-const CHIPS = ['All', 'Shared rent', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
 
 function CustomSelect({ label, value, options, onChange }) {
   const [open, setOpen] = useState(false)
@@ -95,6 +105,10 @@ export default function Home() {
   const [unitType, setUnitType] = useState(UNIT_TYPES[0])
   const [budget, setBudget] = useState(BUDGETS[0])
   const [activeChip, setActiveChip] = useState('All')
+  const [sharedRent, setSharedRent] = useState(false)
+  // Whether the request behind the current results narrowed anything, which
+  // decides which of the two empty states applies.
+  const [isFiltered, setFiltered] = useState(false)
   const [counts, setCounts] = useState({ total: 0, hoods: 0 })
   const rawRecent = useRecentlyViewed()
   const recent = user?.role === 'lister'
@@ -104,7 +118,7 @@ export default function Home() {
   const listingsRef = useRef(null)
   const pageRef = useReveal()
 
-  const fetchListings = useCallback(async (nbhood, ut, bgt, chip) => {
+  const fetchListings = useCallback(async (nbhood, ut, bgt, chip, shared) => {
     setLoading(true)
     setError('')
     try {
@@ -113,9 +127,11 @@ export default function Home() {
         unitType: ut,
         budget: bgt,
         activeChip: chip,
+        sharedRent: shared,
         limit: 6,
       })
       const { data } = await api.get(`/listings?${params}`)
+      setFiltered(hasActiveFilters(params))
       setListings(data.listings || [])
       setTotal(data.total || 0)
     } catch {
@@ -125,7 +141,7 @@ export default function Home() {
     }
   }, [])
 
-  useEffect(() => { fetchListings(neighborhood, unitType, budget, activeChip) }, [fetchListings, activeChip])
+  useEffect(() => { fetchListings(neighborhood, unitType, budget, activeChip, sharedRent) }, [fetchListings, activeChip, sharedRent])
 
   useEffect(() => {
     if (!statsRef.current) return
@@ -133,7 +149,10 @@ export default function Home() {
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return
       observer.disconnect()
-      const targets = { total: Math.max(total, 340), hoods: 15 }
+      // Counts up to the real total. This used to floor at 340, which meant an
+      // empty or small database still advertised "340+ listings" above a grid
+      // that showed nothing.
+      const targets = { total, hoods: 15 }
       const dur = 1200, steps = 40
       let i = 0
       const t = setInterval(() => {
@@ -149,7 +168,22 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    fetchListings(neighborhood, unitType, budget, activeChip)
+    fetchListings(neighborhood, unitType, budget, activeChip, sharedRent)
+  }
+
+  const resetFilters = () => {
+    // Changing the chip or the shared-rent toggle already refetches via the
+    // effect below; the explicit call covers the case where only the fields
+    // were set, which nothing else watches.
+    const refetchesItself = activeChip !== 'All' || sharedRent
+
+    setNeighborhood('')
+    setUnitType(UNIT_TYPES[0])
+    setBudget(BUDGETS[0])
+    setSharedRent(false)
+    setActiveChip('All')
+
+    if (!refetchesItself) fetchListings('', UNIT_TYPES[0], BUDGETS[0], 'All', false)
   }
 
   const viewAllParams = buildListingParams({
@@ -157,6 +191,7 @@ export default function Home() {
     unitType,
     budget,
     activeChip,
+    sharedRent,
   })
 
   return (
@@ -234,18 +269,12 @@ export default function Home() {
             <button type="submit" className="s-btn">Search</button>
           </div>
         </form>
-        <div className="filters">
-          {CHIPS.map(chip => (
-            <button
-              key={chip}
-              type="button"
-              className={`filter${activeChip === chip ? ' on' : ''}`}
-              onClick={() => setActiveChip(chip)}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
+        <FilterChips
+          activeChip={activeChip}
+          setActiveChip={setActiveChip}
+          sharedRent={sharedRent}
+          setSharedRent={setSharedRent}
+        />
       </div>
 
       {/* ── Listings ── */}
@@ -263,9 +292,18 @@ export default function Home() {
               {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           ) : listings.length === 0 ? (
-            <div style={{ padding: '4rem 0', textAlign: 'center', color: 'var(--grey)', fontSize: '0.9rem', fontWeight: 300 }}>
-              No listings match your search. Try different filters.
-            </div>
+            isFiltered ? (
+              <EmptyState
+                tone="bare"
+                icon={SearchX}
+                title="No matches for these filters"
+                description="Nothing fits every filter at once right now. Try a wider budget, or browse the full list."
+                action={{ onClick: resetFilters, label: 'Clear filters' }}
+                secondaryAction={{ to: '/listings', label: 'Browse all' }}
+              />
+            ) : (
+              <LaunchingSoonState tone="bare" />
+            )
           ) : (
             <motion.div
               className="listings"
@@ -297,8 +335,17 @@ export default function Home() {
       <div className="stats-wrap" ref={statsRef}>
         <div className="stats">
           <div className="stat reveal">
-            <div className="stat-n">{counts.total}+</div>
-            <div className="stat-l">Listings in Windhoek</div>
+            {total === 0 ? (
+              <>
+                <div className="stat-n">New</div>
+                <div className="stat-l">Now live in Windhoek</div>
+              </>
+            ) : (
+              <>
+                <div className="stat-n">{counts.total}+</div>
+                <div className="stat-l">Listings in Windhoek</div>
+              </>
+            )}
           </div>
           <div className="stat reveal">
             <div className="stat-n">{counts.hoods}</div>

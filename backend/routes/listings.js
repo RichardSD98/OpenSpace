@@ -104,7 +104,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/listings
 router.post('/', protect, requireLister, async (req, res) => {
   try {
-    const body = fromFrontend(req.body, req.user._id);
+    const body = insertRow(req.body, req.user._id);
     const { data, error } = await supabase.from('listings').insert(body).select().single();
     if (error) throw error;
     res.status(201).json(normalise(data));
@@ -121,8 +121,7 @@ router.put('/:id', protect, requireLister, async (req, res) => {
     if (fetchErr || !existing) return res.status(404).json({ message: 'Listing not found' });
     if (existing.landlord_id !== req.user._id) return res.status(403).json({ message: 'Not authorized' });
 
-    const body = fromFrontend(req.body, req.user._id);
-    delete body.landlord_id;
+    const body = updateRow(req.body);
     body.updated_at = new Date().toISOString();
     const { data, error } = await supabase
       .from('listings').update(body).eq('id', req.params.id).select().single();
@@ -208,27 +207,44 @@ function stripLandlordContact(listing) {
   };
 }
 
-function fromFrontend(body, landlordId) {
-  return {
-    landlord_id: landlordId,
-    title: body.title,
-    description: body.description,
-    unit_type: body.unitType,
-    rent: Number(body.rent),
-    deposit: Number(body.deposit) || 0,
-    shared_rent: body.sharedRent === true,
-    neighborhood: body.neighborhood,
-    address: body.address,
-    bedrooms: Number(body.bedrooms) || 1,
-    bathrooms: Number(body.bathrooms) || 1,
-    available_from: body.availableFrom,
-    contact_name: body.contactName,
-    contact_phone: body.contactPhone,
-    contact_email: body.contactEmail,
-    photos: body.photos || [],
-    amenities: body.amenities || [],
-    is_available: body.isAvailable !== false,
-  };
+// Writable columns only — landlord_id and the timestamps are set by the routes,
+// never taken from the request body.
+const LISTING_FIELDS = {
+  title: { column: 'title', cast: v => v },
+  description: { column: 'description', cast: v => v },
+  unitType: { column: 'unit_type', cast: v => v },
+  rent: { column: 'rent', cast: v => Number(v) },
+  deposit: { column: 'deposit', cast: v => Number(v) || 0 },
+  sharedRent: { column: 'shared_rent', cast: v => v === true },
+  neighborhood: { column: 'neighborhood', cast: v => v },
+  address: { column: 'address', cast: v => v },
+  bedrooms: { column: 'bedrooms', cast: v => Number(v) || 1 },
+  bathrooms: { column: 'bathrooms', cast: v => Number(v) || 1 },
+  availableFrom: { column: 'available_from', cast: v => v },
+  contactName: { column: 'contact_name', cast: v => v },
+  contactPhone: { column: 'contact_phone', cast: v => v },
+  contactEmail: { column: 'contact_email', cast: v => v },
+  photos: { column: 'photos', cast: v => v || [] },
+  amenities: { column: 'amenities', cast: v => v || [] },
+  isAvailable: { column: 'is_available', cast: v => v !== false },
+};
+
+function insertRow(body, landlordId) {
+  const row = { landlord_id: landlordId };
+  for (const [field, { column, cast }] of Object.entries(LISTING_FIELDS)) {
+    row[column] = cast(body[field]);
+  }
+  return row;
+}
+
+// Only the fields actually sent are written, so a partial update leaves every
+// other column at its stored value instead of resetting it to a default.
+function updateRow(body) {
+  const row = {};
+  for (const [field, { column, cast }] of Object.entries(LISTING_FIELDS)) {
+    if (field in body) row[column] = cast(body[field]);
+  }
+  return row;
 }
 
 module.exports = router;

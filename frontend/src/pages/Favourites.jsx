@@ -4,6 +4,7 @@ import { Heart } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Flash from '../components/Flash'
+import EmptyState from '../components/EmptyState'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
@@ -49,10 +50,12 @@ export default function Favourites() {
       <Flash message={flash.msg} type={flash.type} />
 
       {!loading && listings.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--grey)' }}>
-          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>No saved listings yet.</p>
-          <Link to="/" className="btn-main">Browse listings</Link>
-        </div>
+        <EmptyState
+          icon={Heart}
+          title="Nothing saved yet"
+          description="Tap the heart on any listing to keep it here while you compare places."
+          action={{ to: '/listings', label: 'Browse listings' }}
+        />
       )}
 
       {!loading && listings.length > 0 && (

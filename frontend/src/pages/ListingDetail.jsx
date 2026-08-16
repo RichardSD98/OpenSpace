@@ -7,6 +7,8 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { SkeletonDetail } from '../components/Skeleton'
 import MapEmbed from '../components/MapEmbed'
+import { formatMoney, sharersLabel, splitRent } from '../lib/rent'
+import { recordRecentlyViewed } from '../lib/recentlyViewed'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80'
 
@@ -97,13 +99,10 @@ export default function ListingDetail() {
     api.get(`/listings/${id}`)
       .then(({ data }) => {
         setListing(data)
-        // Track recently viewed in localStorage
-        try {
-          const key = 'os_recently_viewed'
-          const prev = JSON.parse(localStorage.getItem(key) || '[]')
-          const updated = [data, ...prev.filter(l => l.id !== data.id)].slice(0, 6)
-          localStorage.setItem(key, JSON.stringify(updated))
-        } catch {}
+        // Record that this listing was viewed — the ID only. Storing the
+        // listing itself would put a copy of the database in localStorage,
+        // which then goes stale or outlives what it describes.
+        recordRecentlyViewed(data.id || data._id)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -278,9 +277,9 @@ export default function ListingDetail() {
               <div>
                 <p className="detail-price">N${listing.rent.toLocaleString()}<span>/mo</span></p>
                 {listing.deposit > 0 && <p className="detail-deposit">Deposit: N${listing.deposit.toLocaleString()}</p>}
-                {listing.sharedRent && (
+                {listing.sharedRent && splitRent(listing.rent, listing.bedrooms) && (
                   <p className="detail-deposit" style={{ color: 'var(--green)' }}>
-                    Open to shared rent — about N${Math.ceil(listing.rent / 2).toLocaleString()} each for two sharing
+                    Open to shared rent — about {formatMoney(splitRent(listing.rent, listing.bedrooms))} each for {sharersLabel(listing.bedrooms)}
                   </p>
                 )}
               </div>

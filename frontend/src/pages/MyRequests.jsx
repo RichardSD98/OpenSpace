@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { CalendarClock } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Flash from '../components/Flash'
+import EmptyState from '../components/EmptyState'
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70'
 
@@ -53,10 +55,12 @@ export default function MyRequests() {
       <Flash message={flash.msg} type={flash.type} />
 
       {!loading && requests.length === 0 && (
-        <div className="my-requests-empty">
-          <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>You haven&apos;t sent any viewing requests yet.</p>
-          <Link to="/" className="btn-main">Browse listings</Link>
-        </div>
+        <EmptyState
+          icon={CalendarClock}
+          title="No viewing requests yet"
+          description="When you ask to view a place, it appears here with the landlord's reply."
+          action={{ to: '/listings', label: 'Browse listings' }}
+        />
       )}
 
       {!loading && requests.length > 0 && (

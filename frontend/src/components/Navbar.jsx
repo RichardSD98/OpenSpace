@@ -11,7 +11,7 @@ function RequestsBadge({ count }) {
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       background: '#dc2626', color: '#fff',
-      fontSize: '0.6rem', fontWeight: 700, lineHeight: 1,
+      fontSize: '0.6rem', fontWeight: 600, lineHeight: 1,
       minWidth: '16px', height: '16px', borderRadius: '8px',
       padding: '0 4px', marginLeft: '5px',
       verticalAlign: 'middle', position: 'relative', top: '-1px',

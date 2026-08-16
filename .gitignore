@@ -1,3 +1,11 @@
 node_modules/
 .env
 *.log
+
+# Production data dumps from scripts/demo-reset/backup.js — real user records,
+# never commit these.
+backups/
+
+# Supabase CLI scratch state — migrations/ and config.toml stay tracked
+supabase/.temp/
+supabase/.branches/

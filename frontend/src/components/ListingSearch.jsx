@@ -23,9 +23,21 @@ export const SORT_OPTIONS = [
   { label: 'Available soonest', value: 'available-asc' },
 ]
 
-export const CHIPS = ['All', 'Shared rent', 'Near UNAM', 'Near IUM', 'Furnished', 'Water included', 'Pet friendly', 'Available now']
+// The chips are mutually exclusive, so each one owns the query params it sets and
+// both directions of the URL mapping read from this table.
+export const CHIP_FILTERS = [
+  { label: 'All', params: {} },
+  { label: 'Near UNAM', params: { neighborhood: 'UNAM' } },
+  { label: 'Near IUM', params: { neighborhood: 'IUM' } },
+  { label: 'Furnished', params: { amenity: 'Furnished' } },
+  { label: 'Water included', params: { amenity: 'Water included' } },
+  { label: 'Pet friendly', params: { amenity: 'Pet-friendly' } },
+  { label: 'Available now', params: { availableNow: 'true' } },
+]
 
-export function buildListingParams({ neighborhood, unitType, budget, activeChip, sort, page, limit }) {
+export const CHIPS = CHIP_FILTERS.map(chip => chip.label)
+
+export function buildListingParams({ neighborhood, unitType, budget, activeChip, sharedRent, sort, page, limit }) {
   const params = new URLSearchParams()
   if (limit) params.set('limit', limit)
   if (page) params.set('page', page)
@@ -35,15 +47,40 @@ export function buildListingParams({ neighborhood, unitType, budget, activeChip,
   if (budget?.min) params.set('minRent', budget.min)
   if (neighborhood?.trim()) params.set('neighborhood', neighborhood.trim())
 
-  if (activeChip === 'Near UNAM') params.set('neighborhood', 'UNAM')
-  if (activeChip === 'Near IUM') params.set('neighborhood', 'IUM')
-  if (activeChip === 'Furnished') params.set('amenity', 'Furnished')
-  if (activeChip === 'Water included') params.set('amenity', 'Water included')
-  if (activeChip === 'Pet friendly') params.set('amenity', 'Pet-friendly')
-  if (activeChip === 'Available now') params.set('availableNow', 'true')
-  if (activeChip === 'Shared rent') params.set('sharedRent', 'true')
+  const chip = CHIP_FILTERS.find(c => c.label === activeChip)
+  for (const [key, value] of Object.entries(chip?.params || {})) params.set(key, value)
+
+  // Independent of the chips — shared rent describes the deal, not the property,
+  // so it stacks on top of whichever chip is active.
+  if (sharedRent) params.set('sharedRent', 'true')
 
   return params
+}
+
+// Everything buildListingParams can set that actually narrows the result set.
+// `sort`, `page` and `limit` are excluded — they reorder or window the results
+// but never cause an empty one, so they must not make an empty page blame a
+// filter that is not there.
+const NARROWING_PARAMS = ['unitType', 'maxRent', 'minRent', 'neighborhood', 'amenity', 'availableNow', 'sharedRent']
+
+// Read from the params that were actually sent, not from the form state — the
+// two differ whenever someone types into a field without submitting, and the
+// empty state should describe the request the results came from.
+export function hasActiveFilters(params) {
+  const search = typeof params === 'string' ? new URLSearchParams(params) : params
+  return NARROWING_PARAMS.some(key => search.has(key))
+}
+
+export function chipFromQuery(params) {
+  const match = CHIP_FILTERS.find(chip => {
+    const entries = Object.entries(chip.params)
+    return entries.length > 0 && entries.every(([key, value]) => params.get(key) === value)
+  })
+  return match?.label || 'All'
+}
+
+export function sharedRentFromQuery(params) {
+  return params.get('sharedRent') === 'true'
 }
 
 export function optionFromValue(options, value) {
@@ -93,6 +130,32 @@ function CustomSelect({ label, value, options, onChange }) {
   )
 }
 
+export function FilterChips({ activeChip, setActiveChip, sharedRent, setSharedRent }) {
+  return (
+    <div className="filters">
+      {CHIPS.map(chip => (
+        <button
+          key={chip}
+          type="button"
+          className={`filter${activeChip === chip ? ' on' : ''}`}
+          onClick={() => setActiveChip(chip)}
+        >
+          {chip}
+        </button>
+      ))}
+      <span className="filter-sep" aria-hidden="true" />
+      <button
+        type="button"
+        className={`filter${sharedRent ? ' on' : ''}`}
+        aria-pressed={sharedRent}
+        onClick={() => setSharedRent(!sharedRent)}
+      >
+        Shared rent
+      </button>
+    </div>
+  )
+}
+
 export default function ListingSearch({
   neighborhood,
   setNeighborhood,
@@ -104,6 +167,8 @@ export default function ListingSearch({
   setSort,
   activeChip,
   setActiveChip,
+  sharedRent,
+  setSharedRent,
   onSubmit,
   showSort = false,
 }) {
@@ -130,18 +195,12 @@ export default function ListingSearch({
           <button type="submit" className="s-btn">Search</button>
         </div>
       </form>
-      <div className="filters">
-        {CHIPS.map(chip => (
-          <button
-            key={chip}
-            type="button"
-            className={`filter${activeChip === chip ? ' on' : ''}`}
-            onClick={() => setActiveChip(chip)}
-          >
-            {chip}
-          </button>
-        ))}
-      </div>
+      <FilterChips
+        activeChip={activeChip}
+        setActiveChip={setActiveChip}
+        sharedRent={sharedRent}
+        setSharedRent={setSharedRent}
+      />
     </div>
   )
 }
